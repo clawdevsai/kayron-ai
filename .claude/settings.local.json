@@ -25,7 +25,9 @@
       "Bash(git commit -m 'T011-T015: Implement modify-order feature \\(Phase 2\\) *)",
       "Bash(git commit -m 'T016-T020: Implement pending-order-details feature \\(Phase 2\\) *)",
       "Bash(grep \"^\\\\\\\\[main\")",
-      "Bash(git commit -m 'T021-T025: Implement symbol-properties feature \\(Phase 2\\) *)"
+      "Bash(git commit -m 'T021-T025: Implement symbol-properties feature \\(Phase 2\\) *)",
+      "mcp__plugin_context-mode_context-mode__ctx_search",
+      "Bash(protoc --go_out=. --go-grpc_out=. ./api/mt5.proto)"
     ]
   }
 }

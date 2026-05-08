@@ -108,3 +108,18 @@ message OrderInfo {
   double current_price = 10;
   double profit_loss = 11;
 }
+
+// MarginCalculator Messages
+message MarginCalculatorRequest {
+  string symbol = 1;
+  string lot = 2;
+}
+
+message MarginCalculatorResponse {
+  string symbol = 1;
+  string lot = 2;
+  string margin_required = 3;
+  string margin_percentage = 4;
+  string current_price = 5;
+  string account_balance = 6;
+}

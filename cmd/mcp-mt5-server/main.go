@@ -26,15 +26,16 @@ type MCPServer struct {
 	mt5Client *mt5.Client
 
 	// Service handlers
-	accountInfoTool   *mcp.AccountInfoTool
-	quoteTool         *mcp.QuoteTool
-	placeOrderTool    *mcp.PlaceOrderTool
-	closePositionTool *mcp.ClosePositionTool
-	ordersListTool    *mcp.OrdersListTool
+	accountInfoTool      *mcp.AccountInfoTool
+	quoteTool            *mcp.QuoteTool
+	placeOrderTool       *mcp.PlaceOrderTool
+	closePositionTool    *mcp.ClosePositionTool
+	ordersListTool       *mcp.OrdersListTool
 	candleTool           *mcp.CandleTool
 	modifyOrderTool      *mcp.ModifyOrderTool
 	pendingOrderTool     *mcp.PendingOrderTool
 	symbolPropertiesTool *mcp.SymbolPropertiesTool
+	marginCalculatorTool *mcp.MarginCalculatorTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -96,6 +97,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	modifyOrderService := mt5.NewModifyOrderService(mt5Client)
 	pendingOrderService := mt5.NewPendingOrderService(mt5Client)
 	symbolPropertiesService := mt5.NewSymbolPropertiesService(mt5Client)
+	marginCalculatorService := mt5.NewMarginCalculatorService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -107,6 +109,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	modifyOrderHandler := daemon.NewModifyOrderServiceHandler(modifyOrderService)
 	pendingOrderHandler := daemon.NewPendingOrderServiceHandler(pendingOrderService)
 	symbolPropertiesHandler := daemon.NewSymbolPropertiesServiceHandler(symbolPropertiesService)
+	marginCalculatorHandler := daemon.NewMarginCalculatorServiceHandler(marginCalculatorService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -118,21 +121,23 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	modifyOrderTool := mcp.NewModifyOrderTool(modifyOrderHandler)
 	pendingOrderTool := mcp.NewPendingOrderTool(pendingOrderHandler)
 	symbolPropertiesTool := mcp.NewSymbolPropertiesTool(symbolPropertiesHandler)
+	marginCalculatorTool := mcp.NewMarginCalculatorTool(marginCalculatorHandler)
 
 	return &MCPServer{
-		logger:            logger.New("MCPServer"),
-		daemon:            grpcDaemon,
-		queue:             queue,
-		mt5Client:         mt5Client,
-		accountInfoTool:   accountInfoTool,
-		quoteTool:         quoteTool,
-		placeOrderTool:    placeOrderTool,
-		closePositionTool: closePositionTool,
-		ordersListTool:    ordersListTool,
-		candleTool:       candleTool,
+		logger:               logger.New("MCPServer"),
+		daemon:               grpcDaemon,
+		queue:                queue,
+		mt5Client:            mt5Client,
+		accountInfoTool:      accountInfoTool,
+		quoteTool:            quoteTool,
+		placeOrderTool:       placeOrderTool,
+		closePositionTool:    closePositionTool,
+		ordersListTool:       ordersListTool,
+		candleTool:           candleTool,
 		modifyOrderTool:      modifyOrderTool,
 		pendingOrderTool:     pendingOrderTool,
 		symbolPropertiesTool: symbolPropertiesTool,
+		marginCalculatorTool: marginCalculatorTool,
 	}
 }
 
@@ -183,15 +188,16 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 	// Register available tools
 	registry := &ToolRegistry{
 		Tools: map[string]func(interface{}) (interface{}, error){
-			"account-info":    s.handleAccountInfo,
-			"quote":           s.handleQuote,
-			"place-order":     s.handlePlaceOrder,
-			"close-position":  s.handleClosePosition,
-			"orders-list":     s.handleOrdersList,
-			"get-candles":          s.handleGetCandles,
-			"modify-order":          s.handleModifyOrder,
+			"account-info":      s.handleAccountInfo,
+			"quote":             s.handleQuote,
+			"place-order":       s.handlePlaceOrder,
+			"close-position":    s.handleClosePosition,
+			"orders-list":       s.handleOrdersList,
+			"get-candles":       s.handleGetCandles,
+			"modify-order":      s.handleModifyOrder,
 			"pending-order-details": s.handlePendingOrderDetails,
 			"symbol-properties":     s.handleSymbolProperties,
+			"margin-calculator":     s.handleMarginCalculator,
 		},
 	}
 
@@ -244,6 +250,10 @@ func (s *MCPServer) handlePendingOrderDetails(params interface{}) (interface{}, 
 
 func (s *MCPServer) handleSymbolProperties(params interface{}) (interface{}, error) {
 	return s.symbolPropertiesTool.Execute(params)
+}
+
+func (s *MCPServer) handleMarginCalculator(params interface{}) (interface{}, error) {
+	return s.marginCalculatorTool.Execute(params)
 }
 
 // Response helpers
