@@ -287,3 +287,263 @@ func (c *Client) ListOrders(filter string) ([]*Order, error) {
 	c.logger.InfoWithLatency(fmt.Sprintf("Retrieved %d orders", len(orders)), latency)
 	return orders, nil
 }
+
+// GetCandles retrieves historical candle data
+func (c *Client) GetCandles(symbol, timeframe string, count int) (interface{}, error) {
+	startTime := time.Now()
+
+	url := fmt.Sprintf("%s/symbols/%s/candles?tf=%s&count=%d", c.baseURL, symbol, timeframe, count)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("GetCandles request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var candles interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&candles); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode candles", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency(fmt.Sprintf("Retrieved candles for %s", symbol), latency)
+	return candles, nil
+}
+
+// ModifyOrder modifies an existing order's stop loss and take profit
+func (c *Client) ModifyOrder(ticket uint64, sl, tp decimal.Decimal) (*Order, error) {
+	startTime := time.Now()
+
+	modifyReq := map[string]interface{}{
+		"ticket":      ticket,
+		"stop_loss":   sl.String(),
+		"take_profit": tp.String(),
+	}
+
+	body, _ := json.Marshal(modifyReq)
+	url := fmt.Sprintf("%s/api/order/%d", c.baseURL, ticket)
+	req, err := http.NewRequest("PUT", url, bytes.NewReader(body))
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("ModifyOrder request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var order Order
+	if err := json.NewDecoder(resp.Body).Decode(&order); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode modify response", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency(fmt.Sprintf("Modified order: %d", ticket), latency)
+	return &order, nil
+}
+
+// GetSymbolProperties retrieves properties of a trading symbol
+func (c *Client) GetSymbolProperties(symbol string) (interface{}, error) {
+	startTime := time.Now()
+
+	url := fmt.Sprintf("%s/symbols/%s/properties", c.baseURL, symbol)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("GetSymbolProperties request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var props interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&props); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode properties", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency(fmt.Sprintf("Retrieved properties for %s", symbol), latency)
+	return props, nil
+}
+
+// GetMarketHours retrieves market trading hours for a symbol
+func (c *Client) GetMarketHours(symbol string) (interface{}, error) {
+	startTime := time.Now()
+
+	url := fmt.Sprintf("%s/symbols/%s/hours", c.baseURL, symbol)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("GetMarketHours request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var hours interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&hours); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode hours", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency(fmt.Sprintf("Retrieved market hours for %s", symbol), latency)
+	return hours, nil
+}
+
+// GetTickData retrieves tick (bid/ask) data for a symbol
+func (c *Client) GetTickData(symbol string, durationSeconds int32) (interface{}, error) {
+	startTime := time.Now()
+
+	url := fmt.Sprintf("%s/symbols/%s/ticks?duration=%d", c.baseURL, symbol, durationSeconds)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("GetTickData request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var ticks interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&ticks); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode ticks", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency(fmt.Sprintf("Retrieved tick data for %s", symbol), latency)
+	return ticks, nil
+}
+
+// GetEquityHistory retrieves account equity history
+func (c *Client) GetEquityHistory(fromTimestamp, toTimestamp int64) (interface{}, error) {
+	startTime := time.Now()
+
+	url := fmt.Sprintf("%s/api/equity/history?from=%d&to=%d", c.baseURL, fromTimestamp, toTimestamp)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("GetEquityHistory request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var history interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&history); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode history", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency("Retrieved equity history", latency)
+	return history, nil
+}
+
+// GetPositions retrieves all open positions for a symbol
+func (c *Client) GetPositions(symbol string) (interface{}, error) {
+	startTime := time.Now()
+
+	url := fmt.Sprintf("%s/symbols/%s/positions", c.baseURL, symbol)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+
+	req.SetBasicAuth(c.login, c.password)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		latency := time.Since(startTime).Milliseconds()
+		c.logger.ErrorWithLatency("GetPositions request failed", err, latency)
+		return nil, errors.ConnectionFailed(err.Error())
+	}
+	defer resp.Body.Close()
+
+	latency := time.Since(startTime).Milliseconds()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var positions interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&positions); err != nil {
+		c.logger.ErrorWithLatency("Failed to decode positions", err, latency)
+		return nil, err
+	}
+
+	c.logger.InfoWithLatency(fmt.Sprintf("Retrieved positions for %s", symbol), latency)
+	return positions, nil
+}
