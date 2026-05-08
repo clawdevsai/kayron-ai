@@ -34,6 +34,7 @@ type MCPServer struct {
 	candleTool           *mcp.CandleTool
 	modifyOrderTool      *mcp.ModifyOrderTool
 	pendingOrderTool     *mcp.PendingOrderTool
+	symbolPropertiesTool *mcp.SymbolPropertiesTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -94,6 +95,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	candleService := mt5.NewCandleService(mt5Client)
 	modifyOrderService := mt5.NewModifyOrderService(mt5Client)
 	pendingOrderService := mt5.NewPendingOrderService(mt5Client)
+	symbolPropertiesService := mt5.NewSymbolPropertiesService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -104,6 +106,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	candleHandler := daemon.NewCandleServiceHandler(candleService)
 	modifyOrderHandler := daemon.NewModifyOrderServiceHandler(modifyOrderService)
 	pendingOrderHandler := daemon.NewPendingOrderServiceHandler(pendingOrderService)
+	symbolPropertiesHandler := daemon.NewSymbolPropertiesServiceHandler(symbolPropertiesService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -114,6 +117,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	candleTool := mcp.NewCandleTool(candleHandler)
 	modifyOrderTool := mcp.NewModifyOrderTool(modifyOrderHandler)
 	pendingOrderTool := mcp.NewPendingOrderTool(pendingOrderHandler)
+	symbolPropertiesTool := mcp.NewSymbolPropertiesTool(symbolPropertiesHandler)
 
 	return &MCPServer{
 		logger:            logger.New("MCPServer"),
@@ -126,8 +130,9 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		closePositionTool: closePositionTool,
 		ordersListTool:    ordersListTool,
 		candleTool:       candleTool,
-		modifyOrderTool:  modifyOrderTool,
-		pendingOrderTool: pendingOrderTool,
+		modifyOrderTool:      modifyOrderTool,
+		pendingOrderTool:     pendingOrderTool,
+		symbolPropertiesTool: symbolPropertiesTool,
 	}
 }
 
@@ -184,8 +189,9 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"close-position":  s.handleClosePosition,
 			"orders-list":     s.handleOrdersList,
 			"get-candles":          s.handleGetCandles,
-			"modify-order":         s.handleModifyOrder,
+			"modify-order":          s.handleModifyOrder,
 			"pending-order-details": s.handlePendingOrderDetails,
+			"symbol-properties":     s.handleSymbolProperties,
 		},
 	}
 
@@ -234,6 +240,10 @@ func (s *MCPServer) handleModifyOrder(params interface{}) (interface{}, error) {
 
 func (s *MCPServer) handlePendingOrderDetails(params interface{}) (interface{}, error) {
 	return s.pendingOrderTool.Execute(params)
+}
+
+func (s *MCPServer) handleSymbolProperties(params interface{}) (interface{}, error) {
+	return s.symbolPropertiesTool.Execute(params)
 }
 
 // Response helpers
