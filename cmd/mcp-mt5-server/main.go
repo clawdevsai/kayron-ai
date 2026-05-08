@@ -35,8 +35,9 @@ type MCPServer struct {
 	modifyOrderTool      *mcp.ModifyOrderTool
 	pendingOrderTool     *mcp.PendingOrderTool
 	symbolPropertiesTool *mcp.SymbolPropertiesTool
-	marginCalculatorTool *mcp.MarginCalculatorTool
-	positionDetailsTool  *mcp.PositionDetailsTool
+	marginCalculatorTool      *mcp.MarginCalculatorTool
+	positionDetailsTool       *mcp.PositionDetailsTool
+	accountEquityHistoryTool  *mcp.AccountEquityHistoryTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -100,6 +101,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	symbolPropertiesService := mt5.NewSymbolPropertiesService(mt5Client)
 	marginCalculatorService := mt5.NewMarginCalculatorService(mt5Client)
 	positionDetailsService := mt5.NewPositionDetailsService(mt5Client)
+	accountEquityHistoryService := mt5.NewAccountEquityHistoryService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -113,6 +115,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	symbolPropertiesHandler := daemon.NewSymbolPropertiesServiceHandler(symbolPropertiesService)
 	marginCalculatorHandler := daemon.NewMarginCalculatorServiceHandler(marginCalculatorService)
 	positionDetailsHandler := daemon.NewPositionDetailsServiceHandler(positionDetailsService)
+	accountEquityHistoryHandler := daemon.NewAccountEquityHistoryServiceHandler(accountEquityHistoryService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -126,6 +129,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	symbolPropertiesTool := mcp.NewSymbolPropertiesTool(symbolPropertiesHandler)
 	marginCalculatorTool := mcp.NewMarginCalculatorTool(marginCalculatorHandler)
 	positionDetailsTool := mcp.NewPositionDetailsTool(positionDetailsHandler)
+	accountEquityHistoryTool := mcp.NewAccountEquityHistoryTool(accountEquityHistoryHandler)
 
 	return &MCPServer{
 		logger:               logger.New("MCPServer"),
@@ -140,9 +144,10 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		candleTool:           candleTool,
 		modifyOrderTool:      modifyOrderTool,
 		pendingOrderTool:     pendingOrderTool,
-		symbolPropertiesTool: symbolPropertiesTool,
-		marginCalculatorTool: marginCalculatorTool,
-		positionDetailsTool:  positionDetailsTool,
+		symbolPropertiesTool:     symbolPropertiesTool,
+		marginCalculatorTool:     marginCalculatorTool,
+		positionDetailsTool:      positionDetailsTool,
+		accountEquityHistoryTool: accountEquityHistoryTool,
 	}
 }
 
@@ -201,9 +206,10 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"get-candles":       s.handleGetCandles,
 			"modify-order":      s.handleModifyOrder,
 			"pending-order-details": s.handlePendingOrderDetails,
-			"symbol-properties": s.handleSymbolProperties,
-			"margin-calculator": s.handleMarginCalculator,
-			"position-details":  s.handlePositionDetails,
+			"symbol-properties":        s.handleSymbolProperties,
+			"margin-calculator":       s.handleMarginCalculator,
+			"position-details":        s.handlePositionDetails,
+			"account-equity-history":  s.handleAccountEquityHistory,
 		},
 	}
 
@@ -264,6 +270,10 @@ func (s *MCPServer) handleMarginCalculator(params interface{}) (interface{}, err
 
 func (s *MCPServer) handlePositionDetails(params interface{}) (interface{}, error) {
 	return s.positionDetailsTool.Execute(params)
+}
+
+func (s *MCPServer) handleAccountEquityHistory(params interface{}) (interface{}, error) {
+	return s.accountEquityHistoryTool.Execute(params)
 }
 
 // Response helpers

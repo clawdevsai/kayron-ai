@@ -27,7 +27,10 @@
       "Bash(grep \"^\\\\\\\\[main\")",
       "Bash(git commit -m 'T021-T025: Implement symbol-properties feature \\(Phase 2\\) *)",
       "mcp__plugin_context-mode_context-mode__ctx_search",
-      "Bash(protoc --go_out=. --go-grpc_out=. ./api/mt5.proto)"
+      "Bash(protoc --go_out=. --go-grpc_out=. ./api/mt5.proto)",
+      "PowerShell(grep -n \"AccountEquity\\\\|EquityHistory\" \"C:\\\\Users\\\\Administrator\\\\Workspace\\\\lukeware\\\\kayron-ai\\\\api\\\\mt5.proto\")",
+      "Bash(powershell -c \"\\(Get-Content 'C:\\\\Users\\\\Administrator\\\\Workspace\\\\lukeware\\\\kayron-ai\\\\api\\\\mt5.proto' | Measure-Object -Line\\).Lines\")",
+      "Bash(git commit -m 'T036-T040: Implement account-equity-history feature \\(Phase 3\\) *)"
     ]
   }
 }
