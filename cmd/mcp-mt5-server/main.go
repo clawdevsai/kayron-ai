@@ -38,6 +38,7 @@ type MCPServer struct {
 	marginCalculatorTool      *mcp.MarginCalculatorTool
 	positionDetailsTool       *mcp.PositionDetailsTool
 	accountEquityHistoryTool  *mcp.AccountEquityHistoryTool
+	balanceDrawdownTool       *mcp.BalanceDrawdownTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -102,6 +103,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	marginCalculatorService := mt5.NewMarginCalculatorService(mt5Client)
 	positionDetailsService := mt5.NewPositionDetailsService(mt5Client)
 	accountEquityHistoryService := mt5.NewAccountEquityHistoryService(mt5Client)
+	balanceDrawdownService := mt5.NewBalanceDrawdownService(mt5Client, accountEquityHistoryService)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -116,6 +118,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	marginCalculatorHandler := daemon.NewMarginCalculatorServiceHandler(marginCalculatorService)
 	positionDetailsHandler := daemon.NewPositionDetailsServiceHandler(positionDetailsService)
 	accountEquityHistoryHandler := daemon.NewAccountEquityHistoryServiceHandler(accountEquityHistoryService)
+	balanceDrawdownHandler := daemon.NewBalanceDrawdownServiceHandler(balanceDrawdownService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -130,6 +133,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	marginCalculatorTool := mcp.NewMarginCalculatorTool(marginCalculatorHandler)
 	positionDetailsTool := mcp.NewPositionDetailsTool(positionDetailsHandler)
 	accountEquityHistoryTool := mcp.NewAccountEquityHistoryTool(accountEquityHistoryHandler)
+	balanceDrawdownTool := mcp.NewBalanceDrawdownTool(balanceDrawdownHandler)
 
 	return &MCPServer{
 		logger:               logger.New("MCPServer"),
@@ -148,6 +152,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		marginCalculatorTool:     marginCalculatorTool,
 		positionDetailsTool:      positionDetailsTool,
 		accountEquityHistoryTool: accountEquityHistoryTool,
+		balanceDrawdownTool:      balanceDrawdownTool,
 	}
 }
 
@@ -210,6 +215,7 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"margin-calculator":       s.handleMarginCalculator,
 			"position-details":        s.handlePositionDetails,
 			"account-equity-history":  s.handleAccountEquityHistory,
+			"balance-drawdown":        s.handleBalanceDrawdown,
 		},
 	}
 
@@ -274,6 +280,10 @@ func (s *MCPServer) handlePositionDetails(params interface{}) (interface{}, erro
 
 func (s *MCPServer) handleAccountEquityHistory(params interface{}) (interface{}, error) {
 	return s.accountEquityHistoryTool.Execute(params)
+}
+
+func (s *MCPServer) handleBalanceDrawdown(params interface{}) (interface{}, error) {
+	return s.balanceDrawdownTool.Execute(params)
 }
 
 // Response helpers

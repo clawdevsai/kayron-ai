@@ -30,7 +30,8 @@
       "Bash(protoc --go_out=. --go-grpc_out=. ./api/mt5.proto)",
       "PowerShell(grep -n \"AccountEquity\\\\|EquityHistory\" \"C:\\\\Users\\\\Administrator\\\\Workspace\\\\lukeware\\\\kayron-ai\\\\api\\\\mt5.proto\")",
       "Bash(powershell -c \"\\(Get-Content 'C:\\\\Users\\\\Administrator\\\\Workspace\\\\lukeware\\\\kayron-ai\\\\api\\\\mt5.proto' | Measure-Object -Line\\).Lines\")",
-      "Bash(git commit -m 'T036-T040: Implement account-equity-history feature \\(Phase 3\\) *)"
+      "Bash(git commit -m 'T036-T040: Implement account-equity-history feature \\(Phase 3\\) *)",
+      "Bash(git commit -m 'T041-T046: Implement balance-drawdown feature \\(Phase 4\\) *)"
     ]
   }
 }
