@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/lukeware/kayron-ai/api"
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/services/daemon"
 )
@@ -29,18 +30,18 @@ func (t *AccountInfoTool) Execute(params interface{}) (interface{}, error) {
 	ctx := context.Background()
 
 	// Call gRPC handler
-	accountInfo, err := t.handler.GetAccountInfo(ctx, nil)
+	accountInfo, err := t.handler.GetAccountInfo(ctx, &api.AccountInfoRequest{})
 	if err != nil {
-		t.logger.Error(fmt.Sprintf("Failed to get account info: %v", err))
+		t.logger.Error("Failed to get account info", err)
 		return nil, fmt.Errorf("failed to retrieve account information: %v", err)
 	}
 
 	result := map[string]interface{}{
-		"balance":     accountInfo.Balance,
-		"equity":      accountInfo.Equity,
-		"margin":      accountInfo.Margin,
-		"free_margin": accountInfo.FreeMargin,
-		"currency":    accountInfo.Currency,
+		"balance":      accountInfo.Balance,
+		"equity":       accountInfo.Equity,
+		"margin_used":  accountInfo.MarginUsed,
+		"margin_free":  accountInfo.MarginFree,
+		"currency":     accountInfo.Currency,
 	}
 
 	t.logger.Info("Account info retrieved successfully")

@@ -6,7 +6,6 @@ import (
 	"github.com/lukeware/kayron-ai/api"
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/services/mt5"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // QuoteServiceHandler handles gRPC quote requests
@@ -38,7 +37,7 @@ func (h *QuoteServiceHandler) GetQuote(ctx context.Context, req *api.GetQuoteReq
 		Bid:       quote.Bid.String(),
 		Ask:       quote.Ask.String(),
 		Spread:    quote.Spread.String(),
-		Timestamp: timestamppb.New(quote.Timestamp),
+		Timestamp: quote.Timestamp.Unix(),
 	}
 
 	h.logger.Info("Quote response sent for " + quote.Symbol)

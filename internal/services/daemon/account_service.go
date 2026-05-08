@@ -6,7 +6,6 @@ import (
 	"github.com/lukeware/kayron-ai/api"
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/services/mt5"
-	"github.com/shopspring/decimal"
 )
 
 // AccountServiceHandler handles gRPC account info requests
@@ -36,8 +35,8 @@ func (h *AccountServiceHandler) GetAccountInfo(ctx context.Context, req *api.Get
 	resp := &api.AccountInfo{
 		Balance:    account.Balance.String(),
 		Equity:     account.Equity.String(),
-		Margin:     account.Margin.String(),
-		FreeMargin: account.FreeMargin.String(),
+		MarginUsed: account.Margin.String(),
+		MarginFree: account.FreeMargin.String(),
 		Currency:   account.Currency,
 	}
 

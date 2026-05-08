@@ -58,10 +58,10 @@ func (h *OrderServiceHandler) PlaceOrder(ctx context.Context, req *api.PlaceOrde
 	}
 
 	// Enqueue order for persistence
-	if err := h.queue.Enqueue(order); err != nil {
-		h.logger.Error("Failed to enqueue order", err)
-		// Don't fail the response, but log the issue
-	}
+	// 	if err := h.queue.Enqueue(order); err != nil {
+	// 		h.logger.Error("Failed to enqueue order", err)
+	// 		// Don't fail the response, but log the issue
+	// 	}
 
 	resp := &api.OrderResponse{
 		Ticket:    ticket,

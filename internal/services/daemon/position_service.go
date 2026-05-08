@@ -34,10 +34,10 @@ func (h *PositionServiceHandler) ClosePosition(ctx context.Context, req *api.Clo
 	}
 
 	resp := &api.PositionCloseResponse{
-		Ticket:    req.Ticket,
+		Ticket:     req.Ticket,
 		ProfitLoss: profitLoss.String(),
 	}
 
-	h.logger.Info(fmt.Sprintf("Position closed: ticket=%d, profitLoss=%.2f", req.Ticket, profitLoss))
+	h.logger.Info(fmt.Sprintf("Position closed: ticket=%d, profitLoss=%s", req.Ticket, profitLoss.String()))
 	return resp, nil
 }

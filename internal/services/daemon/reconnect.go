@@ -11,14 +11,14 @@ import (
 
 // Reconnector handles auto-reconnect logic with exponential backoff
 type Reconnector struct {
-	client         *mt5client.Client
-	maxRetries     int
-	baseBackoff    time.Duration
-	maxBackoff     time.Duration
-	heartbeatTick  time.Duration
-	logger         *logger.Logger
-	isConnected    bool
-	lastHeartbeat  time.Time
+	client           *mt5client.Client
+	maxRetries       int
+	baseBackoff      time.Duration
+	maxBackoff       time.Duration
+	heartbeatTick    time.Duration
+	logger           *logger.Logger
+	isConnected      bool
+	lastHeartbeat    time.Time
 	consecutiveFails int
 }
 

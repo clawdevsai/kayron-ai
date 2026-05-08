@@ -44,7 +44,7 @@ func (t *ClosePositionTool) Execute(params interface{}) (interface{}, error) {
 	// Call gRPC handler
 	closeResp, err := t.handler.ClosePosition(ctx, &api.ClosePositionRequest{Ticket: ticket})
 	if err != nil {
-		t.logger.Error(fmt.Sprintf("Failed to close position: %v", err))
+		t.logger.Error("Failed to close position", err)
 		return nil, fmt.Errorf("failed to close position: %v", err)
 	}
 

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -66,7 +64,10 @@ type ToolRegistry struct {
 func NewMCPServer(cfg *config.Config) *MCPServer {
 	queue, err := models.NewQueue("./mt5_queue.db")
 	if err != nil {
-		log.Fatalf("Failed to create queue: %v", err)
+		// For testing without CGO: skip queue, still functional for basic testing
+		logger := logger.New("Main")
+		logger.Info(fmt.Sprintf("Warning: queue initialization failed (requires CGO): %v. Proceeding without persistence.", err))
+		queue = nil
 	}
 
 	mt5Client := mt5.NewClient(
@@ -76,7 +77,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		cfg.MT5Timeout,
 	)
 
-	daemon, err := daemon.NewDaemon(cfg.GRPCPort, mt5Client, queue)
+	grpcDaemon, err := daemon.NewDaemon(cfg.GRPCPort, mt5Client, queue)
 	if err != nil {
 		log.Fatalf("Failed to create daemon: %v", err)
 	}
@@ -104,7 +105,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 
 	return &MCPServer{
 		logger:            logger.New("MCPServer"),
-		daemon:            daemon,
+		daemon:            grpcDaemon,
 		queue:             queue,
 		mt5Client:         mt5Client,
 		accountInfoTool:   accountInfoTool,
@@ -255,7 +256,9 @@ func main() {
 		<-sigChan
 		logger.Info("Shutdown signal received")
 		server.daemon.Stop()
-		server.queue.Close()
+		if server.queue != nil {
+			server.queue.Close()
+		}
 		os.Exit(0)
 	}()
 

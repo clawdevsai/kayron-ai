@@ -42,7 +42,7 @@ func (t *QuoteTool) Execute(params interface{}) (interface{}, error) {
 	// Call gRPC handler
 	quote, err := t.handler.GetQuote(ctx, &api.GetQuoteRequest{Symbol: symbol})
 	if err != nil {
-		t.logger.Error(fmt.Sprintf("Failed to get quote for %s: %v", symbol, err))
+		t.logger.Error(fmt.Sprintf("Failed to get quote for %s", symbol), err)
 		return nil, fmt.Errorf("failed to retrieve quote for %s: %v", symbol, err)
 	}
 

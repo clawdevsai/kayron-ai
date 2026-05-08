@@ -42,7 +42,7 @@ func (t *OrdersListTool) Execute(params interface{}) (interface{}, error) {
 	// Call gRPC handler
 	ordersList, err := t.handler.GetOrders(ctx, &api.GetOrdersRequest{Symbol: symbol})
 	if err != nil {
-		t.logger.Error(fmt.Sprintf("Failed to get orders: %v", err))
+		t.logger.Error("Failed to get orders", err)
 		return nil, fmt.Errorf("failed to retrieve orders: %v", err)
 	}
 
@@ -62,9 +62,8 @@ func (t *OrdersListTool) Execute(params interface{}) (interface{}, error) {
 
 	result := map[string]interface{}{
 		"orders": orders,
-		"count":  ordersList.Count,
 	}
 
-	t.logger.Info(fmt.Sprintf("Orders list retrieved: count=%d", ordersList.Count))
+	t.logger.Info(fmt.Sprintf("Orders list retrieved: count=%d", len(orders)))
 	return result, nil
 }

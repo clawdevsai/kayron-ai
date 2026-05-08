@@ -43,14 +43,14 @@ func (t *PlaceOrderTool) Execute(params interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("type parameter is required")
 	}
 
-	volume, ok := paramsMap["volume"].(string)
-	if !ok || volume == "" {
-		return nil, fmt.Errorf("volume parameter is required")
+	volumeFloat, ok := paramsMap["volume"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("volume parameter is required and must be a number")
 	}
 
-	price, ok := paramsMap["price"].(string)
-	if !ok || price == "" {
-		return nil, fmt.Errorf("price parameter is required")
+	priceFloat, ok := paramsMap["price"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("price parameter is required and must be a number")
 	}
 
 	idempotencyKey, ok := paramsMap["idempotency_key"].(string)
@@ -64,12 +64,12 @@ func (t *PlaceOrderTool) Execute(params interface{}) (interface{}, error) {
 	orderResp, err := t.handler.PlaceOrder(ctx, &api.PlaceOrderRequest{
 		Symbol:         symbol,
 		Type:           orderType,
-		Volume:         volume,
-		Price:          price,
+		Volume:         volumeFloat,
+		Price:          priceFloat,
 		IdempotencyKey: idempotencyKey,
 	})
 	if err != nil {
-		t.logger.Error(fmt.Sprintf("Failed to place order: %v", err))
+		t.logger.Error("Failed to place order", err)
 		return nil, fmt.Errorf("failed to place order: %v", err)
 	}
 

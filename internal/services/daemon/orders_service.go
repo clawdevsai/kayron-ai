@@ -28,7 +28,6 @@ func (h *OrdersServiceHandler) GetOrders(ctx context.Context, req *api.GetOrders
 	h.logger.Info("GetOrders request")
 
 	var orders []*api.Order
-	var err error
 
 	// If symbol is specified, get orders for that symbol only
 	if req.Symbol != "" {
@@ -41,13 +40,13 @@ func (h *OrdersServiceHandler) GetOrders(ctx context.Context, req *api.GetOrders
 
 		for _, o := range pendingOrders {
 			orders = append(orders, &api.Order{
-				Ticket:   o.Ticket,
-				Symbol:   o.Symbol,
-				Type:     string(o.Type),
-				Volume:   o.Volume.String(),
-				Price:    o.Price.String(),
-				Status:   string(o.Status),
-				FillPrice: o.FillPrice.String(),
+				Ticket:     o.Ticket,
+				Symbol:     o.Symbol,
+				Type:       string(o.Type),
+				Volume:     o.Volume.String(),
+				Price:      o.Price.String(),
+				Status:     string(o.Status),
+				FillPrice:  o.FillPrice.String(),
 				ProfitLoss: o.ProfitLoss.String(),
 			})
 		}
@@ -61,13 +60,13 @@ func (h *OrdersServiceHandler) GetOrders(ctx context.Context, req *api.GetOrders
 
 		for _, o := range pendingOrders {
 			orders = append(orders, &api.Order{
-				Ticket:   o.Ticket,
-				Symbol:   o.Symbol,
-				Type:     string(o.Type),
-				Volume:   o.Volume.String(),
-				Price:    o.Price.String(),
-				Status:   string(o.Status),
-				FillPrice: o.FillPrice.String(),
+				Ticket:     o.Ticket,
+				Symbol:     o.Symbol,
+				Type:       string(o.Type),
+				Volume:     o.Volume.String(),
+				Price:      o.Price.String(),
+				Status:     string(o.Status),
+				FillPrice:  o.FillPrice.String(),
 				ProfitLoss: o.ProfitLoss.String(),
 			})
 		}
@@ -75,7 +74,6 @@ func (h *OrdersServiceHandler) GetOrders(ctx context.Context, req *api.GetOrders
 
 	resp := &api.OrdersList{
 		Orders: orders,
-		Count:  int32(len(orders)),
 	}
 
 	h.logger.Info(fmt.Sprintf("Orders retrieved: count=%d", len(orders)))
