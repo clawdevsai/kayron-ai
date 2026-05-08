@@ -96,6 +96,22 @@ Trading AI agent needs to monitor pending orders and their status.
 
 ---
 
+### User Story 6 - Get Historical Candles (Priority: P2)
+
+Trading AI agent needs historical OHLC data for technical analysis and signal generation.
+
+**Why this priority**: Enables AI to analyze price action, support/resistance levels, trend confirmation before trading decisions.
+
+**Independent Test**: Can be fully tested by querying candles for symbol and verifying returned OHLC matches MT5 chart data.
+
+**Acceptance Scenarios**:
+
+1. **Given** EURUSD H1 timeframe, **When** get-candles called with count=100, **Then** return 100 candles with open/high/low/close/volume/timestamp
+2. **Given** 5m timeframe requested, **When** get-candles called, **Then** return 5-minute candles (M5, M15, H1, D, W supported)
+3. **Given** instrument has no history, **When** get-candles called, **Then** return empty candle list or error
+
+---
+
 ### Edge Cases
 
 - MT5 terminal disconnects during order placement → MCP auto-reconnects, queues order to SQLite, retries on reconnection FIFO; client receives pending status; orders survive daemon crash
@@ -123,7 +139,7 @@ Trading AI agent needs to monitor pending orders and their status.
 - **FR-010**: MCP server MUST expose health check endpoint for terminal connection status
 - **FR-011**: Terminal connection MUST use gRPC daemon (local, decoupled from MT5 process) for resilience
 - **FR-012**: MCP server MUST auto-reconnect on terminal disconnect and buffer pending operations in queue until reconnected
-- **FR-013**: Scope explicitly includes: account-info, market quotes, place market orders, close positions, query pending orders. Excludes: technical analysis, backtesting, copytrading, tick history, modify pending orders (only close supported)
+- **FR-013**: Scope explicitly includes: account-info, market quotes, place market orders, close positions, query pending orders, historical candles (OHLC). Excludes: technical analysis indicators (SMA/RSI/MACD), backtesting, copytrading, tick-by-tick data, modify pending orders (only close supported)
 - **FR-014**: Pending operations queue MUST be persisted to local SQLite; survive daemon restart; reprocess FIFO on reconnection within 60s window; max unlimited entries
 - **FR-015**: Place-order tool MUST accept optional `idempotency_key` (UUID); deduplicate by key; guarantee exactly-once fill semantics; reject duplicate keys with cached response
 - **FR-016**: Order sequencing MUST be FIFO per trading account; prevent margin/position race conditions; timestamp enforcement via MT5
@@ -136,6 +152,7 @@ Trading AI agent needs to monitor pending orders and their status.
 - **Quote**: Real-time price data. Attributes: symbol, bid, ask, timestamp.
 - **Order**: Trading order (market or pending). Attributes: ticket, type (buy/sell), volume, price, stop loss, take profit, status.
 - **Position**: Open trading position. Attributes: ticket, symbol, type, volume, open price, current price, profit.
+- **Candle**: OHLC price bar. Attributes: symbol, timeframe (M1/M5/M15/H1/D/W), open, high, low, close, volume, timestamp.
 
 ## Success Criteria *(mandatory)*
 
@@ -155,6 +172,7 @@ Trading AI agent needs to monitor pending orders and their status.
 - **SC-012**: Idempotency key (optional UUID) prevents duplicate fills; same key within 24h returns cached response; verified via concurrent order test
 - **SC-013**: Order sequencing FIFO per account enforced; no margin race conditions detected in stress test (10 concurrent orders, margin edge case)
 - **SC-014**: Integration tests use real MT5 (demo account); unit tests use mock MT5; CI/CD skips integration (manual trigger only)
+- **SC-015**: Get-candles tool returns 100 H1 candles within 1 second; supports M5/M15/H1/D/W timeframes; validates symbol exists before querying
 
 ## Assumptions
 

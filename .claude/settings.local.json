@@ -15,7 +15,8 @@
       "Bash(sed -i 's/MarginFree:/MarginFree:/g; s/FreeMarginUsed:/MarginFree:/g' internal/services/daemon/account_service.go)",
       "Bash(sed -i \"s/account\\\\.Balance\\\\.String\\(\\)/parseFloat\\(account.Balance.String\\(\\)\\)/g; s/account\\\\.Equity\\\\.String\\(\\)/parseFloat\\(account.Equity.String\\(\\)\\)/g; s/account\\\\.Margin\\\\.String\\(\\)/parseFloat\\(account.Margin.String\\(\\)\\)/g\" internal/services/daemon/account_service.go)",
       "Bash(cd \"C:\\\\\\\\Users\\\\\\\\Administrator\\\\\\\\Workspace\\\\\\\\lukeware\\\\\\\\kayron-ai\")",
-      "Bash(git commit -m 'feat: compile MT5 MCP server and verify all tools functional *)"
+      "Bash(git commit -m 'feat: compile MT5 MCP server and verify all tools functional *)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh --json --paths-only)"
     ]
   }
 }
