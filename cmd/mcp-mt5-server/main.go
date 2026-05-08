@@ -32,6 +32,7 @@ type MCPServer struct {
 	closePositionTool *mcp.ClosePositionTool
 	ordersListTool    *mcp.OrdersListTool
 	candleTool        *mcp.CandleTool
+	modifyOrderTool   *mcp.ModifyOrderTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -90,6 +91,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	positionService := mt5.NewPositionService(mt5Client)
 	ordersService := mt5.NewOrdersService(mt5Client)
 	candleService := mt5.NewCandleService(mt5Client)
+	modifyOrderService := mt5.NewModifyOrderService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -98,6 +100,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	positionHandler := daemon.NewPositionServiceHandler(positionService)
 	ordersHandler := daemon.NewOrdersServiceHandler(ordersService)
 	candleHandler := daemon.NewCandleServiceHandler(candleService)
+	modifyOrderHandler := daemon.NewModifyOrderServiceHandler(modifyOrderService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -106,6 +109,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	closePositionTool := mcp.NewClosePositionTool(positionHandler)
 	ordersListTool := mcp.NewOrdersListTool(ordersHandler)
 	candleTool := mcp.NewCandleTool(candleHandler)
+	modifyOrderTool := mcp.NewModifyOrderTool(modifyOrderHandler)
 
 	return &MCPServer{
 		logger:            logger.New("MCPServer"),
@@ -118,6 +122,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		closePositionTool: closePositionTool,
 		ordersListTool:    ordersListTool,
 		candleTool:        candleTool,
+		modifyOrderTool:   modifyOrderTool,
 	}
 }
 
@@ -174,6 +179,7 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"close-position":  s.handleClosePosition,
 			"orders-list":     s.handleOrdersList,
 			"get-candles":     s.handleGetCandles,
+			"modify-order":    s.handleModifyOrder,
 		},
 	}
 
@@ -214,6 +220,10 @@ func (s *MCPServer) handleOrdersList(params interface{}) (interface{}, error) {
 
 func (s *MCPServer) handleGetCandles(params interface{}) (interface{}, error) {
 	return s.candleTool.Execute(params)
+}
+
+func (s *MCPServer) handleModifyOrder(params interface{}) (interface{}, error) {
+	return s.modifyOrderTool.Execute(params)
 }
 
 // Response helpers

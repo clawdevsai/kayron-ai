@@ -21,7 +21,8 @@
       "Bash(git commit -m 'Document evolution plan: 10 new MCP tools organized in 3 phases *)",
       "Bash(.specify/scripts/bash/setup-tasks.sh --json)",
       "Bash(git commit -m 'Generate 110-task breakdown for 10 evolution features *)",
-      "Bash(git commit -m 'Phase 0: Infrastructure foundation for 10 evolution features *)"
+      "Bash(git commit -m 'Phase 0: Infrastructure foundation for 10 evolution features *)",
+      "Bash(git commit -m 'T011-T015: Implement modify-order feature \\(Phase 2\\) *)"
     ]
   }
 }
