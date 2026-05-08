@@ -1,1 +1,13 @@
 graphify-out/
+# Go binaries
+cmd/mcp-mt5-server/bin/
+
+# Generated protobuf code
+*.pb.go
+*.pb.gw.go
+
+# Go vendor
+vendor/
+
+# Go build cache
+.go-build/

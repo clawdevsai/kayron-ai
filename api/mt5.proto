@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package mt5;
+
+option go_package = "github.com/lukeware/kayron-ai/api/mt5";
+
+// MT5 gRPC Service Definition
+service MT5Service {
+  rpc GetAccountInfo(AccountInfoRequest) returns (AccountInfoResponse);
+  rpc GetQuote(QuoteRequest) returns (QuoteResponse);
+  rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+  rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+}
+
+// AccountInfo Messages
+message AccountInfoRequest {
+  string account_id = 1;
+}
+
+message AccountInfoResponse {
+  string account_id = 1;
+  double balance = 2;
+  double equity = 3;
+  double margin_used = 4;
+  double margin_free = 5;
+  double margin_level = 6;
+  string currency = 7;
+  int64 timestamp = 8;
+}
+
+// Quote Messages
+message QuoteRequest {
+  string symbol = 1;
+}
+
+message QuoteResponse {
+  string symbol = 1;
+  double bid = 2;
+  double ask = 3;
+  int64 timestamp = 4;
+}
+
+// PlaceOrder Messages
+message PlaceOrderRequest {
+  string account_id = 1;
+  string symbol = 2;
+  string side = 3; // BUY or SELL
+  double volume = 4;
+  double price = 5;
+  double stop_loss = 6;
+  double take_profit = 7;
+  string comment = 8;
+  string idempotency_key = 9;
+}
+
+message PlaceOrderResponse {
+  uint64 ticket = 1;
+  string account_id = 2;
+  string symbol = 3;
+  string side = 4;
+  double volume = 5;
+  double open_price = 6;
+  double stop_loss = 7;
+  double take_profit = 8;
+  int64 open_time = 9;
+  string status = 10;
+}
+
+// ClosePosition Messages
+message ClosePositionRequest {
+  string account_id = 1;
+  uint64 ticket = 2;
+  double volume = 3;
+  string idempotency_key = 4;
+}
+
+message ClosePositionResponse {
+  uint64 ticket = 1;
+  double volume_closed = 2;
+  double close_price = 3;
+  int64 close_time = 4;
+  double profit_loss = 5;
+  string status = 6;
+}
+
+// ListOrders Messages
+message ListOrdersRequest {
+  string account_id = 1;
+  string filter = 2; // OPEN, CLOSED, or ALL
+}
+
+message ListOrdersResponse {
+  repeated OrderInfo orders = 1;
+  int32 total_count = 2;
+}
+
+message OrderInfo {
+  uint64 ticket = 1;
+  string symbol = 2;
+  string side = 3;
+  double volume = 4;
+  double open_price = 5;
+  int64 open_time = 6;
+  double stop_loss = 7;
+  double take_profit = 8;
+  string status = 9;
+  double current_price = 10;
+  double profit_loss = 11;
+}
