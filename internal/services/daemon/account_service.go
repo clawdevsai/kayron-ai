@@ -29,7 +29,7 @@ func (h *AccountServiceHandler) GetAccountInfo(ctx context.Context, req *api.Get
 
 	account, err := h.mt5Service.GetAccount(ctx)
 	if err != nil {
-		h.logger.Error("Failed to get account info: " + err.Error())
+		h.logger.Error("Failed to get account info", err)
 		return nil, err
 	}
 

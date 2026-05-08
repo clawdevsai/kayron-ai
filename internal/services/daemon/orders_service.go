@@ -35,7 +35,7 @@ func (h *OrdersServiceHandler) GetOrders(ctx context.Context, req *api.GetOrders
 		h.logger.Info(fmt.Sprintf("Filtering orders for symbol: %s", req.Symbol))
 		pendingOrders, err := h.mt5Service.GetPendingOrdersBySymbol(ctx, req.Symbol)
 		if err != nil {
-			h.logger.Error("Failed to get orders: " + err.Error())
+			h.logger.Error("Failed to get orders", err)
 			return nil, err
 		}
 
@@ -55,7 +55,7 @@ func (h *OrdersServiceHandler) GetOrders(ctx context.Context, req *api.GetOrders
 		// Get all pending orders
 		pendingOrders, err := h.mt5Service.GetPendingOrders(ctx)
 		if err != nil {
-			h.logger.Error("Failed to get orders: " + err.Error())
+			h.logger.Error("Failed to get orders", err)
 			return nil, err
 		}
 

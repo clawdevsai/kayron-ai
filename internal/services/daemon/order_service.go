@@ -31,27 +31,18 @@ func NewOrderServiceHandler(mt5Service *mt5.OrderService, queue *models.Queue) *
 
 // PlaceOrder handles the PlaceOrder gRPC call with FIFO sequencing and idempotency
 func (h *OrderServiceHandler) PlaceOrder(ctx context.Context, req *api.PlaceOrderRequest) (*api.OrderResponse, error) {
-	h.logger.Info(fmt.Sprintf("PlaceOrder request: symbol=%s type=%s volume=%s", req.Symbol, req.Type, req.Volume))
+	h.logger.Info(fmt.Sprintf("PlaceOrder request: symbol=%s type=%s volume=%f", req.Symbol, req.Side, req.Volume))
 
-	// Parse decimals
-	volume, err := decimal.NewFromString(req.Volume)
-	if err != nil {
-		h.logger.Error("Invalid volume: " + err.Error())
-		return nil, fmt.Errorf("invalid volume: %v", err)
-	}
-
-	price, err := decimal.NewFromString(req.Price)
-	if err != nil {
-		h.logger.Error("Invalid price: " + err.Error())
-		return nil, fmt.Errorf("invalid price: %v", err)
-	}
+	// Convert float64 to decimal
+	volume := decimal.NewFromFloat(req.Volume)
+	price := decimal.NewFromFloat(req.Price)
 
 	orderType := models.OrderType(req.Type)
 	order := models.NewOrder(req.Symbol, orderType, volume, price, req.IdempotencyKey)
 
 	// Validate order
 	if err := h.mt5Service.ValidateOrder(order); err != nil {
-		h.logger.Error("Order validation failed: " + err.Error())
+		h.logger.Error("Order validation failed", err)
 		return nil, err
 	}
 
@@ -62,13 +53,13 @@ func (h *OrderServiceHandler) PlaceOrder(ctx context.Context, req *api.PlaceOrde
 	// Place order through MT5 service (handles idempotency)
 	ticket, err := h.mt5Service.PlaceOrder(ctx, order)
 	if err != nil {
-		h.logger.Error("Failed to place order: " + err.Error())
+		h.logger.Error("Failed to place order", err)
 		return nil, err
 	}
 
 	// Enqueue order for persistence
 	if err := h.queue.Enqueue(order); err != nil {
-		h.logger.Error("Failed to enqueue order: " + err.Error())
+		h.logger.Error("Failed to enqueue order", err)
 		// Don't fail the response, but log the issue
 	}
 

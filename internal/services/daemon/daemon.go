@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	pb "github.com/lukeware/kayron-ai/api/mt5"
+	pb "github.com/lukeware/kayron-ai/api"
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/models"
 	mt5client "github.com/lukeware/kayron-ai/internal/services/mt5"

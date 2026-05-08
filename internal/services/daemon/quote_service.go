@@ -29,7 +29,7 @@ func (h *QuoteServiceHandler) GetQuote(ctx context.Context, req *api.GetQuoteReq
 
 	quote, err := h.mt5Service.GetQuote(ctx, req.Symbol)
 	if err != nil {
-		h.logger.Error("Failed to get quote: " + err.Error())
+		h.logger.Error("Failed to get quote", err)
 		return nil, err
 	}
 

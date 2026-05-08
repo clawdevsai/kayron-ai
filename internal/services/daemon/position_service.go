@@ -29,7 +29,7 @@ func (h *PositionServiceHandler) ClosePosition(ctx context.Context, req *api.Clo
 
 	profitLoss, err := h.mt5Service.ClosePosition(ctx, req.Ticket)
 	if err != nil {
-		h.logger.Error("Failed to close position: " + err.Error())
+		h.logger.Error("Failed to close position", err)
 		return nil, err
 	}
 

@@ -4,7 +4,14 @@
       "mcp__plugin_context-mode_context-mode__ctx_execute",
       "mcp__plugin_context-mode_context-mode__ctx_execute_file",
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(make build *)",
+      "Bash(go get *)",
+      "Bash(go mod *)",
+      "Bash(mv api/mt5/*.proto api/)",
+      "Bash(mv api/mt5/*.go api/)",
+      "Bash(git commit -m 'Fix proto package structure and begin resolving compilation errors *)"
     ]
   }
 }

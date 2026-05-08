@@ -6,7 +6,6 @@ import (
 
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/models"
-	"github.com/shopspring/decimal"
 )
 
 // OrderService handles MT5 order placement and management
