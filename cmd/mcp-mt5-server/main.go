@@ -39,6 +39,7 @@ type MCPServer struct {
 	positionDetailsTool       *mcp.PositionDetailsTool
 	accountEquityHistoryTool  *mcp.AccountEquityHistoryTool
 	balanceDrawdownTool       *mcp.BalanceDrawdownTool
+	orderFillAnalysisTool     *mcp.OrderFillAnalysisTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -104,6 +105,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	positionDetailsService := mt5.NewPositionDetailsService(mt5Client)
 	accountEquityHistoryService := mt5.NewAccountEquityHistoryService(mt5Client)
 	balanceDrawdownService := mt5.NewBalanceDrawdownService(mt5Client, accountEquityHistoryService)
+	orderFillAnalysisService := mt5.NewOrderFillAnalysisService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -119,6 +121,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	positionDetailsHandler := daemon.NewPositionDetailsServiceHandler(positionDetailsService)
 	accountEquityHistoryHandler := daemon.NewAccountEquityHistoryServiceHandler(accountEquityHistoryService)
 	balanceDrawdownHandler := daemon.NewBalanceDrawdownServiceHandler(balanceDrawdownService)
+	orderFillAnalysisHandler := daemon.NewOrderFillAnalysisServiceHandler(orderFillAnalysisService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -134,6 +137,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	positionDetailsTool := mcp.NewPositionDetailsTool(positionDetailsHandler)
 	accountEquityHistoryTool := mcp.NewAccountEquityHistoryTool(accountEquityHistoryHandler)
 	balanceDrawdownTool := mcp.NewBalanceDrawdownTool(balanceDrawdownHandler)
+	orderFillAnalysisTool := mcp.NewOrderFillAnalysisTool(orderFillAnalysisHandler)
 
 	return &MCPServer{
 		logger:               logger.New("MCPServer"),
@@ -153,6 +157,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		positionDetailsTool:      positionDetailsTool,
 		accountEquityHistoryTool: accountEquityHistoryTool,
 		balanceDrawdownTool:      balanceDrawdownTool,
+		orderFillAnalysisTool:    orderFillAnalysisTool,
 	}
 }
 
@@ -216,6 +221,7 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"position-details":        s.handlePositionDetails,
 			"account-equity-history":  s.handleAccountEquityHistory,
 			"balance-drawdown":        s.handleBalanceDrawdown,
+			"order-fill-analysis":     s.handleOrderFillAnalysis,
 		},
 	}
 
@@ -284,6 +290,10 @@ func (s *MCPServer) handleAccountEquityHistory(params interface{}) (interface{},
 
 func (s *MCPServer) handleBalanceDrawdown(params interface{}) (interface{}, error) {
 	return s.balanceDrawdownTool.Execute(params)
+}
+
+func (s *MCPServer) handleOrderFillAnalysis(params interface{}) (interface{}, error) {
+	return s.orderFillAnalysisTool.Execute(params)
 }
 
 // Response helpers
