@@ -41,6 +41,7 @@ type MCPServer struct {
 	balanceDrawdownTool       *mcp.BalanceDrawdownTool
 	orderFillAnalysisTool     *mcp.OrderFillAnalysisTool
 	marketHoursTool           *mcp.MarketHoursTool
+	tickDataTool              *mcp.TickDataTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -108,6 +109,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	balanceDrawdownService := mt5.NewBalanceDrawdownService(mt5Client, accountEquityHistoryService)
 	orderFillAnalysisService := mt5.NewOrderFillAnalysisService(mt5Client)
 	marketHoursService := mt5.NewMarketHoursService(mt5Client)
+	tickDataService := mt5.NewTickDataService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -125,6 +127,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	balanceDrawdownHandler := daemon.NewBalanceDrawdownServiceHandler(balanceDrawdownService)
 	orderFillAnalysisHandler := daemon.NewOrderFillAnalysisServiceHandler(orderFillAnalysisService)
 	marketHoursHandler := daemon.NewMarketHoursServiceHandler(marketHoursService)
+	tickDataHandler := daemon.NewTickDataServiceHandler(tickDataService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -142,6 +145,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	balanceDrawdownTool := mcp.NewBalanceDrawdownTool(balanceDrawdownHandler)
 	orderFillAnalysisTool := mcp.NewOrderFillAnalysisTool(orderFillAnalysisHandler)
 	marketHoursTool := mcp.NewMarketHoursTool(marketHoursHandler)
+	tickDataTool := mcp.NewTickDataTool(tickDataHandler)
 
 	return &MCPServer{
 		logger:               logger.New("MCPServer"),
@@ -163,6 +167,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		balanceDrawdownTool:      balanceDrawdownTool,
 		orderFillAnalysisTool:    orderFillAnalysisTool,
 		marketHoursTool:          marketHoursTool,
+		tickDataTool:             tickDataTool,
 	}
 }
 
@@ -228,6 +233,7 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"balance-drawdown":        s.handleBalanceDrawdown,
 			"order-fill-analysis":     s.handleOrderFillAnalysis,
 			"market-hours":            s.handleMarketHours,
+			"tick-data":               s.handleTickData,
 		},
 	}
 
@@ -304,6 +310,10 @@ func (s *MCPServer) handleOrderFillAnalysis(params interface{}) (interface{}, er
 
 func (s *MCPServer) handleMarketHours(params interface{}) (interface{}, error) {
 	return s.marketHoursTool.Execute(params)
+}
+
+func (s *MCPServer) handleTickData(params interface{}) (interface{}, error) {
+	return s.tickDataTool.Execute(params)
 }
 
 // Response helpers
