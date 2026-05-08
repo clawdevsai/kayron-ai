@@ -32,7 +32,8 @@
       "Bash(powershell -c \"\\(Get-Content 'C:\\\\Users\\\\Administrator\\\\Workspace\\\\lukeware\\\\kayron-ai\\\\api\\\\mt5.proto' | Measure-Object -Line\\).Lines\")",
       "Bash(git commit -m 'T036-T040: Implement account-equity-history feature \\(Phase 3\\) *)",
       "Bash(git commit -m 'T041-T046: Implement balance-drawdown feature \\(Phase 4\\) *)",
-      "Bash(git commit -m 'T047-T053: Implement order-fill-analysis feature \\(Phase 4\\) *)"
+      "Bash(git commit -m 'T047-T053: Implement order-fill-analysis feature \\(Phase 4\\) *)",
+      "Bash(git commit -m 'T054-T057: Implement market-hours feature \\(Phase 4\\) *)"
     ]
   }
 }

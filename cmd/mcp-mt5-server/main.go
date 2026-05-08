@@ -40,6 +40,7 @@ type MCPServer struct {
 	accountEquityHistoryTool  *mcp.AccountEquityHistoryTool
 	balanceDrawdownTool       *mcp.BalanceDrawdownTool
 	orderFillAnalysisTool     *mcp.OrderFillAnalysisTool
+	marketHoursTool           *mcp.MarketHoursTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -106,6 +107,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	accountEquityHistoryService := mt5.NewAccountEquityHistoryService(mt5Client)
 	balanceDrawdownService := mt5.NewBalanceDrawdownService(mt5Client, accountEquityHistoryService)
 	orderFillAnalysisService := mt5.NewOrderFillAnalysisService(mt5Client)
+	marketHoursService := mt5.NewMarketHoursService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -122,6 +124,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	accountEquityHistoryHandler := daemon.NewAccountEquityHistoryServiceHandler(accountEquityHistoryService)
 	balanceDrawdownHandler := daemon.NewBalanceDrawdownServiceHandler(balanceDrawdownService)
 	orderFillAnalysisHandler := daemon.NewOrderFillAnalysisServiceHandler(orderFillAnalysisService)
+	marketHoursHandler := daemon.NewMarketHoursServiceHandler(marketHoursService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -138,6 +141,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	accountEquityHistoryTool := mcp.NewAccountEquityHistoryTool(accountEquityHistoryHandler)
 	balanceDrawdownTool := mcp.NewBalanceDrawdownTool(balanceDrawdownHandler)
 	orderFillAnalysisTool := mcp.NewOrderFillAnalysisTool(orderFillAnalysisHandler)
+	marketHoursTool := mcp.NewMarketHoursTool(marketHoursHandler)
 
 	return &MCPServer{
 		logger:               logger.New("MCPServer"),
@@ -158,6 +162,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		accountEquityHistoryTool: accountEquityHistoryTool,
 		balanceDrawdownTool:      balanceDrawdownTool,
 		orderFillAnalysisTool:    orderFillAnalysisTool,
+		marketHoursTool:          marketHoursTool,
 	}
 }
 
@@ -222,6 +227,7 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"account-equity-history":  s.handleAccountEquityHistory,
 			"balance-drawdown":        s.handleBalanceDrawdown,
 			"order-fill-analysis":     s.handleOrderFillAnalysis,
+			"market-hours":            s.handleMarketHours,
 		},
 	}
 
@@ -294,6 +300,10 @@ func (s *MCPServer) handleBalanceDrawdown(params interface{}) (interface{}, erro
 
 func (s *MCPServer) handleOrderFillAnalysis(params interface{}) (interface{}, error) {
 	return s.orderFillAnalysisTool.Execute(params)
+}
+
+func (s *MCPServer) handleMarketHours(params interface{}) (interface{}, error) {
+	return s.marketHoursTool.Execute(params)
 }
 
 // Response helpers
