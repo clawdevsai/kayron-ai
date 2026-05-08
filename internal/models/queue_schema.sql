@@ -25,3 +25,35 @@ ON pending_operations(status);
 -- Combined index for efficient queue processing
 CREATE INDEX IF NOT EXISTS idx_pending_operations_status_created_at
 ON pending_operations(status, created_at);
+
+-- Account equity history (for Phase 3 analytics)
+CREATE TABLE IF NOT EXISTS account_equity_history (
+    account_id INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL,
+    equity TEXT NOT NULL,
+    balance TEXT NOT NULL,
+    PRIMARY KEY (account_id, timestamp)
+);
+
+CREATE INDEX IF NOT EXISTS idx_account_equity_history_account_id
+ON account_equity_history(account_id);
+
+CREATE INDEX IF NOT EXISTS idx_account_equity_history_timestamp
+ON account_equity_history(timestamp);
+
+-- Order fill analysis (for Phase 4 analytics)
+CREATE TABLE IF NOT EXISTS order_fills (
+    ticket INTEGER PRIMARY KEY,
+    symbol TEXT NOT NULL,
+    fill_time INTEGER NOT NULL,
+    fill_price TEXT NOT NULL,
+    slippage TEXT NOT NULL,
+    execution_latency_ms INTEGER,
+    created_at INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_fills_symbol
+ON order_fills(symbol);
+
+CREATE INDEX IF NOT EXISTS idx_order_fills_fill_time
+ON order_fills(fill_time);

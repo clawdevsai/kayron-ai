@@ -16,7 +16,12 @@
       "Bash(sed -i \"s/account\\\\.Balance\\\\.String\\(\\)/parseFloat\\(account.Balance.String\\(\\)\\)/g; s/account\\\\.Equity\\\\.String\\(\\)/parseFloat\\(account.Equity.String\\(\\)\\)/g; s/account\\\\.Margin\\\\.String\\(\\)/parseFloat\\(account.Margin.String\\(\\)\\)/g\" internal/services/daemon/account_service.go)",
       "Bash(cd \"C:\\\\\\\\Users\\\\\\\\Administrator\\\\\\\\Workspace\\\\\\\\lukeware\\\\\\\\kayron-ai\")",
       "Bash(git commit -m 'feat: compile MT5 MCP server and verify all tools functional *)",
-      "Bash(.specify/scripts/bash/check-prerequisites.sh --json --paths-only)"
+      "Bash(.specify/scripts/bash/check-prerequisites.sh --json --paths-only)",
+      "Bash(.specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(git commit -m 'Document evolution plan: 10 new MCP tools organized in 3 phases *)",
+      "Bash(.specify/scripts/bash/setup-tasks.sh --json)",
+      "Bash(git commit -m 'Generate 110-task breakdown for 10 evolution features *)",
+      "Bash(git commit -m 'Phase 0: Infrastructure foundation for 10 evolution features *)"
     ]
   }
 }
