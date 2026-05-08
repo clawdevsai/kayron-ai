@@ -36,6 +36,7 @@ type MCPServer struct {
 	pendingOrderTool     *mcp.PendingOrderTool
 	symbolPropertiesTool *mcp.SymbolPropertiesTool
 	marginCalculatorTool *mcp.MarginCalculatorTool
+	positionDetailsTool  *mcp.PositionDetailsTool
 }
 
 // MCPRequest represents a JSON-RPC 2.0 request
@@ -98,6 +99,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	pendingOrderService := mt5.NewPendingOrderService(mt5Client)
 	symbolPropertiesService := mt5.NewSymbolPropertiesService(mt5Client)
 	marginCalculatorService := mt5.NewMarginCalculatorService(mt5Client)
+	positionDetailsService := mt5.NewPositionDetailsService(mt5Client)
 
 	// Initialize daemon services
 	accountHandler := daemon.NewAccountServiceHandler(accountService)
@@ -110,6 +112,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	pendingOrderHandler := daemon.NewPendingOrderServiceHandler(pendingOrderService)
 	symbolPropertiesHandler := daemon.NewSymbolPropertiesServiceHandler(symbolPropertiesService)
 	marginCalculatorHandler := daemon.NewMarginCalculatorServiceHandler(marginCalculatorService)
+	positionDetailsHandler := daemon.NewPositionDetailsServiceHandler(positionDetailsService)
 
 	// Initialize MCP tools
 	accountInfoTool := mcp.NewAccountInfoTool(accountHandler)
@@ -122,6 +125,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	pendingOrderTool := mcp.NewPendingOrderTool(pendingOrderHandler)
 	symbolPropertiesTool := mcp.NewSymbolPropertiesTool(symbolPropertiesHandler)
 	marginCalculatorTool := mcp.NewMarginCalculatorTool(marginCalculatorHandler)
+	positionDetailsTool := mcp.NewPositionDetailsTool(positionDetailsHandler)
 
 	return &MCPServer{
 		logger:               logger.New("MCPServer"),
@@ -138,6 +142,7 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 		pendingOrderTool:     pendingOrderTool,
 		symbolPropertiesTool: symbolPropertiesTool,
 		marginCalculatorTool: marginCalculatorTool,
+		positionDetailsTool:  positionDetailsTool,
 	}
 }
 
@@ -196,8 +201,9 @@ func (s *MCPServer) handleRPC(w http.ResponseWriter, r *http.Request) {
 			"get-candles":       s.handleGetCandles,
 			"modify-order":      s.handleModifyOrder,
 			"pending-order-details": s.handlePendingOrderDetails,
-			"symbol-properties":     s.handleSymbolProperties,
-			"margin-calculator":     s.handleMarginCalculator,
+			"symbol-properties": s.handleSymbolProperties,
+			"margin-calculator": s.handleMarginCalculator,
+			"position-details":  s.handlePositionDetails,
 		},
 	}
 
@@ -254,6 +260,10 @@ func (s *MCPServer) handleSymbolProperties(params interface{}) (interface{}, err
 
 func (s *MCPServer) handleMarginCalculator(params interface{}) (interface{}, error) {
 	return s.marginCalculatorTool.Execute(params)
+}
+
+func (s *MCPServer) handlePositionDetails(params interface{}) (interface{}, error) {
+	return s.positionDetailsTool.Execute(params)
 }
 
 // Response helpers
