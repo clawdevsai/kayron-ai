@@ -1,6 +1,14 @@
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+**Current Implementation Plan**: `specs/001-mt5-mcp-integration/plan.md`
+
+For architecture, tech stack, design decisions, and project structure, read the plan. Key artifacts:
+- `spec.md` — Requirements + user stories (clarifications complete)
+- `research.md` — MT5 WebAPI, libraries, gRPC daemon patterns
+- `data-model.md` — Entity definitions + relationships
+- `contracts/mcp-tools.md` — gRPC + MCP tool contracts
+- `quickstart.md` — Setup guide
+- `plan.md` — This document (Phase 0-2 planning)
+
 <!-- SPECKIT END -->
 
 ## graphify

@@ -5,6 +5,19 @@
 **Status**: Draft
 **Input**: User description: "MCP tools for MetaTrader 5 integration using Go and gRPC"
 
+## Clarifications
+
+### Session 2026-05-08
+
+- Q: How should the MCP server **connect to MT5 terminal**? → A: **gRPC daemon local** (desacoplado, resiliente a crashes MT5)
+- Q: Terminal desconecta durante operação — comportamento esperado? → A: **Auto-reconectar com fila pending** (operações bufferizadas, transparente ao cliente)
+- Q: Múltiplas ordens simultâneas (concurrent) — conflito de preço? → A: **Processamento independente, erro MT5 propagado** (cliente responsável por retry + lógica)
+- Q: Credenciais MT5 em dev/test → armazenamento? → A: **Env vars (dev) + Secrets Manager (prod)**, rotação automática
+- Q: Escopo explícito — o que está IN-SCOPE? → A: Account info, quotes, place orders, close positions, query pending orders, MCP JSON-RPC 2.0, gRPC+TLS, health check, error messages pt-BR, concurrent invocations (≥10)
+- Q: Persistência & limites fila auto-reconnect? → A: **SQLite local, durável cross-restart, máx unlimited, FIFO priority**
+- Q: Idempotência & sequenciamento ordens concurrent? → A: **Idempotency key obrigatória (UUID), FIFO sequencing por account, 1 fill garantido**
+- Q: Estratégia testes — MT5 real vs mock? → A: **MT5 real para integration, mock para unit, CI/CD skip integration (manual)**
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Query MT5 Account Status (Priority: P1)
@@ -85,11 +98,14 @@ Trading AI agent needs to monitor pending orders and their status.
 
 ### Edge Cases
 
-- MT5 terminal disconnects during order placement → return error, do not leave order in ambiguous state
+- MT5 terminal disconnects during order placement → MCP auto-reconnects, queues order to SQLite, retries on reconnection FIFO; client receives pending status; orders survive daemon crash
+- Concurrent orders on same symbol (price gap risk) → orders processed FIFO per account; idempotency key prevents duplicates; MT5 enforces sequencing via timestamp
+- Client retries order with same idempotency key within 24h → MCP returns cached fill result (exactly-once semantics); no duplicate fill on MT5
+- Pending queue accumulates >1000 orders (large disconnect) → process FIFO, no arbitrary limit; SQLite handles persistence
 - MT5 returns duplicate ticket numbers → use most recent, log warning
 - Network latency exceeds 5 seconds → return timeout error
 - MT5 requires re-login → detect and return authentication error
-- Order rejected by MT5 due to price gapping → return rejection reason to client
+- Order rejected by MT5 due to price gapping → return rejection reason to client; client can retry with new idempotency key
 
 ## Requirements *(mandatory)*
 
@@ -105,6 +121,12 @@ Trading AI agent needs to monitor pending orders and their status.
 - **FR-008**: MT5 credentials MUST be retrieved from environment variables or secrets manager
 - **FR-009**: Tools MUST validate input parameters against defined schemas before passing to MT5
 - **FR-010**: MCP server MUST expose health check endpoint for terminal connection status
+- **FR-011**: Terminal connection MUST use gRPC daemon (local, decoupled from MT5 process) for resilience
+- **FR-012**: MCP server MUST auto-reconnect on terminal disconnect and buffer pending operations in queue until reconnected
+- **FR-013**: Scope explicitly includes: account-info, market quotes, place market orders, close positions, query pending orders. Excludes: technical analysis, backtesting, copytrading, tick history, modify pending orders (only close supported)
+- **FR-014**: Pending operations queue MUST be persisted to local SQLite; survive daemon restart; reprocess FIFO on reconnection within 60s window; max unlimited entries
+- **FR-015**: Place-order tool MUST accept optional `idempotency_key` (UUID); deduplicate by key; guarantee exactly-once fill semantics; reject duplicate keys with cached response
+- **FR-016**: Order sequencing MUST be FIFO per trading account; prevent margin/position race conditions; timestamp enforcement via MT5
 
 ### Key Entities
 
@@ -127,6 +149,12 @@ Trading AI agent needs to monitor pending orders and their status.
 - **SC-006**: Terminal disconnection detected and reported within 10 seconds
 - **SC-007**: Zero hardcoded credentials in codebase
 - **SC-008**: All MCP tools have corresponding integration tests with MT5
+- **SC-009**: Credentials rotated automatically per Secrets Manager policy (≤90 days); zero hardcoded in code or logs
+- **SC-010**: gRPC daemon reconnect latency <10 seconds; queued operations processed FIFO on reconnect within 60s window
+- **SC-011**: Pending queue persisted to SQLite; zero orders lost on daemon crash/restart; verified via integration test (crash sim)
+- **SC-012**: Idempotency key (optional UUID) prevents duplicate fills; same key within 24h returns cached response; verified via concurrent order test
+- **SC-013**: Order sequencing FIFO per account enforced; no margin race conditions detected in stress test (10 concurrent orders, margin edge case)
+- **SC-014**: Integration tests use real MT5 (demo account); unit tests use mock MT5; CI/CD skips integration (manual trigger only)
 
 ## Assumptions
 

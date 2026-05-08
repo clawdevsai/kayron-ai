@@ -1,128 +1,120 @@
 # Implementation Plan: MT5 MCP Integration
 
-**Branch**: `001-mt5-mcp-integration` | **Date**: 2026-05-08 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-mt5-mcp-integration` | **Date**: 2026-05-08 | **Spec**: `specs/001-mt5-mcp-integration/spec.md`
+**Input**: Feature specification from `/specs/001-mt5-mcp-integration/spec.md`
 
-## Summary
+**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
-MCP server exposing Go+gRPC tools for MetaTrader 5 trading automation. Tools: account-info, quote, place-order, close-position, orders-list. Terminal runs on Windows; MCP server on Linux. Decimal precision for all financial values.
+Build MCP server exposing MetaTrader 5 trading operations via JSON-RPC 2.0 tools. Core features: account-info, market quotes, place/close orders, query pending orders. Arch: Go + gRPC daemon (local MT5 connection), auto-reconnect with SQLite-persisted pending queue, idempotent order processing (UUID key), FIFO sequencing per account. Tech: MT5 WebAPI (HTTP/JSON), shops/decimal for financial calcs, Protocol Buffers for gRPC contracts. Clarifications: Q1-Q8 resolved (gRPC daemon, auto-reconnect persistent, concurrent orders idempotent, credential mgmt, scope explicit, queue persistence, idempotency key, testing strategy).
+
+## Clarifications (Session 2026-05-08)
+
+- Q1: Terminal connection → **gRPC daemon local**
+- Q2: Terminal disconnect → **Auto-reconnect + fila pending**
+- Q3: Concurrent orders → **Independent, erro propagado**
+- Q4: Credenciais → **Env vars + Secrets Manager**
+- Q5: Escopo IN-SCOPE → **5 core tools + MCP + gRPC + health + pt-BR**
+- Q6: Fila persistência → **SQLite, durável cross-restart, unlimited**
+- Q7: Idempotência → **UUID key, FIFO sequencing, exactly-once fill**
+- Q8: Testing → **MT5 real integration, mock unit, CI/CD manual**
 
 ## Technical Context
 
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
 **Language/Version**: Go 1.21+  
-**Primary Dependencies**: gRPC, Protocol Buffers (buf), MT5 API (MT5 DLL/COM via cgo or COM binding), decimal arithmetic library  
-**Storage**: N/A (stateless MCP server; MT5 terminal is source of truth)  
-**Testing**: `go test`, integration tests with MT5 terminal, `buf lint` for schema validation  
-**Target Platform**: Linux server (MCP server) + Windows server (MT5 terminal)  
-**Project Type**: MCP server / library (CLI + library embedding)  
-**Performance Goals**: account-info <2s, quote <500ms, order placement <5s, 10 concurrent invocations  
-**Constraints**: TLS in production, decimal for currency values, no hardcoded credentials  
-**Scale/Scope**: Single MT5 terminal per MCP server instance; single trading account per terminal  
+**Primary Dependencies**: gRPC, Protocol Buffers, MT5 WebAPI (HTTP/JSON client), shops/decimal library  
+**Storage**: N/A (stateless MCP server, no persistence)  
+**Testing**: Go testing + integration tests with MT5 terminal (fixtures required)  
+**Target Platform**: Windows server (MT5 terminal accessible)  
+**Project Type**: MCP server / library  
+**Performance Goals**: account-info <2s, quote <500ms, order placement <5s, concurrent handling ≥10  
+**Constraints**: pt-BR error messages, zero hardcoded credentials, TLS in prod, decimal precision (no floats for currency), gRPC daemon auto-reconnect <10s  
+**Scale/Scope**: Single MT5 terminal per MCP instance, 5 core MCP tools
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. MCP Protocol Compliance | ✅ PASS | All tools conform to MCP JSON-RPC 2.0 (FR-001, FR-004) |
-| II. Go + gRPC First | ✅ PASS | Go with gRPC + Protobuf |
-| III. MT5 Integration Safety | ✅ PASS | Input validation (FR-009), disconnection handling (FR-002), decimal precision (FR-003) |
-| IV. TDD (NON-NEGOTIABLE) | ✅ PASS | User chose Option B: tests written alongside implementation (still required before PR merge per Quality Gates) |
-| V. Observability | ✅ PASS | Structured logging with latency metrics (FR-005) |
-| VI. Versioning & Compatibility | ✅ PASS | Semantic versioning for MCP tool schemas |
-| VII. Security by Default | ✅ PASS | TLS (FR-007), env credentials (FR-008), input validation (FR-009) |
+| Principle | Gate | Status |
+|-----------|------|--------|
+| I. MCP Protocol Compliance | Tools MUST conform to MCP JSON-RPC 2.0 | ✅ PASS (spec FR-001) |
+| II. Go + gRPC First | Services in Go, inter-service comms via gRPC + Protobuf | ✅ PASS (spec + clarification Q1) |
+| III. MT5 Integration Safety | Input validation, graceful disconnect handling, decimal precision | ✅ PASS (spec FR-002/003/009, Q2 auto-reconnect) |
+| IV. Test-Driven Development | Tests written before impl, Red-Green-Refactor, integration tests | ✅ PASS (spec SC-008) |
+| V. Observability | Structured logging (JSON), latency metrics, MT5 health | ✅ PASS (spec FR-005) |
+| VI. Versioning & Compatibility | Semantic versioning, backward compatibility | ⚠️ DEFERRED (v1.0.0, no breaking changes required yet) |
 
-**Gate Result**: ✅ All gates pass. TDD resolved (Option B).
+**Gate Result**: ✅ **PASS — Proceed to Phase 0**
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/001-mt5-mcp-integration/
-├── plan.md              # This file
-├── research.md          # Phase 0 output
-├── data-model.md        # Phase 1 output
-├── quickstart.md        # Phase 1 output
-├── contracts/           # Phase 1 output
-└── tasks.md             # Phase 2 output (/speckit-tasks)
+specs/[###-feature]/
+├── plan.md              # This file (/speckit-plan command output)
+├── research.md          # Phase 0 output (/speckit-plan command)
+├── data-model.md        # Phase 1 output (/speckit-plan command)
+├── quickstart.md        # Phase 1 output (/speckit-plan command)
+├── contracts/           # Phase 1 output (/speckit-plan command)
+└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
 ### Source Code (repository root)
 
 ```text
-mt5-mcp/
-├── cmd/
-│   └── server/
-│       └── main.go           # MCP server entry point
-├── internal/
-│   ├── mt5/
-│   │   ├── terminal.go      # MT5 terminal connection
-│   │   ├── account.go       # Account queries
-│   │   ├── quote.go         # Market quotes
-│   │   ├── order.go         # Order placement/management
-│   │   └── types.go         # MT5 domain types
-│   ├── mcp/
-│   │   ├── tools.go         # MCP tool definitions
-│   │   └── handler.go       # MCP request handler
-│   └── decimal/
-│       └── decimal.go       # Decimal arithmetic for financial values
-├── api/
-│   └── proto/
-│       └── mt5.proto        # gRPC service definition
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── contract/
-├── Makefile
-└── go.mod
+cmd/
+├── mcp-mt5-server/
+│   └── main.go              # MCP server entry point + gRPC daemon launcher
+
+internal/
+├── models/                  # Data entities (Account, Order, Position, Quote, etc.)
+├── services/
+│   ├── mt5/                 # MT5 WebAPI client + gRPC service implementations
+│   ├── mcp/                 # MCP tool handlers (account-info, quote, place-order, etc.)
+│   └── daemon/              # gRPC daemon + auto-reconnect logic
+├── contracts/               # gRPC service definitions (*.proto files)
+└── logger/                  # Structured JSON logging
+
+tests/
+├── integration/             # Integration tests vs MT5 terminal (fixtures)
+└── unit/                    # Unit tests for services, models
+
+go.mod / go.sum             # Go module dependencies
+Dockerfile                   # Container build for Windows server
 ```
 
-**Structure Decision**: Single Go module `mt5-mcp`. MCP server embedded as library for programmatic use. CLI wrapper for standalone execution.
-
-## Complexity Tracking
-
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| None yet | — | — |
+**Structure Decision**: Single Go project (Option 1). MCP tools handler in `internal/services/mcp/`, MT5 integration in `internal/services/mt5/`, gRPC daemon in `internal/services/daemon/`. Integration tests use real MT5 fixtures (or mock for CI).
 
 ## Phase 0: Research
 
-### Unknowns to Resolve
+**Status**: ✅ **COMPLETE**
 
-1. **MT5 Go integration mechanism** — MT5 DLL/COM? Third-party library? Custom cgo binding?
-2. **gRPC + MCP interaction pattern** — MCP is JSON-RPC 2.0 over stdio; gRPC for internal services. Need bridge design.
-3. **Decimal library choice** — shops/decimal vs. ericlagerlöf/decimal (Go standard has no decimal type)
-4. **TDD confirmation** — does user want tests BEFORE implementation per constitution IV?
-
-### Research Tasks
-
-- Task: "MT5 API integration options for Go (DLL/COM/third-party)"
-- Task: "MCP server architecture patterns (JSON-RPC 2.0 bridge to gRPC)"
-- Task: "Go decimal library benchmark for financial calculations"
-
-**Output**: research.md
-
-## Phase 1: Design & Contracts
-
-### Entities
-
-From spec: MT5Terminal, TradingAccount, Instrument, Quote, Order, Position
-
-### Interface Contracts
-
-- MCP tools: account-info, quote, place-order, close-position, orders-list
-- gRPC service: MT5Trading service with Terminal, Account, Order services
-- CLI: `mt5-mcp serve --terminal <path>`
-
-### Agent Context Update
-
-Update AGENTS.md `<!-- SPECKIT START -->` → `<!-- SPECKIT END -->` to point to `specs/001-mt5-mcp-integration/plan.md`
-
-**Output**: data-model.md, contracts/, quickstart.md
+**Completed artifacts:**
+- `research.md` — MT5 WebAPI, shops/decimal, gRPC daemon lifecycle, MCP health check, pt-BR translations
 
 ---
 
-*Plan ready for Phase 0. Await user confirmation on TDD requirement.*
+## Phase 1: Design & Contracts
+
+**Status**: ✅ **COMPLETE**
+
+**Completed deliverables:**
+1. ✅ `data-model.md` — Entity definitions (MT5Terminal, TradingAccount, Instrument, Quote, Order, Position) with validation rules
+2. ✅ `contracts/mcp-tools.md` — gRPC service + MCP tool contracts (account-info, quote, place-order, close-position, orders-list)
+3. ✅ `quickstart.md` — Setup + local dev guide
+
+**Outputs generated**: data-model.md, contracts/mcp-tools.md, quickstart.md
+
+---
+
+## Phase 2: Implementation Tasks
+
+**Status**: PENDING (generated by `/speckit-tasks`)
+
+This phase (task breakdown + implementation sequencing) will be generated by the `/speckit-tasks` command after Phase 1 design completes. Expected deliverable: `tasks.md`
