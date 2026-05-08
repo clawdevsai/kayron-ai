@@ -42,7 +42,7 @@ func (s *BalanceDrawdownService) CalculateDrawdown(ctx context.Context, sinceTim
 		return nil, fmt.Errorf("failed to get account info: %v", err)
 	}
 
-	currentEquity, _ := decimal.NewFromString(accountInfo.Equity)
+	currentEquity := accountInfo.Equity
 
 	// Get equity history since timestamp
 	// Use a time range: from sinceTimestamp to now

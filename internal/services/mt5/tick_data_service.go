@@ -59,7 +59,8 @@ func (s *TickDataService) GetTickData(ctx context.Context, symbol string, durati
 
 	for i := int32(0); i < durationSeconds; i += int32(tickIntervalSec) {
 		// Mock: bid/ask fluctuate slightly
-		variation := decimal.NewFromInt(int64(i%5) - 2).Mul(decimal.NewFromString("0.0001"))
+		variationFactor, _ := decimal.NewFromString("0.0001")
+		variation := decimal.NewFromInt(int64(i%5) - 2).Mul(variationFactor)
 		bid := baseBid.Add(variation)
 		ask := baseAsk.Add(variation)
 
