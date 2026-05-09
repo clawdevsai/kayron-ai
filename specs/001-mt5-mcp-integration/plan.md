@@ -1,104 +1,185 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: PlaceOrder Real Execution + Risk Management
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-mt5-mcp-integration` | **Date**: 2026-05-08 | **Spec**: `specs/001-mt5-mcp-integration/spec.md`
+**Input**: Feature specification from `/specs/001-mt5-mcp-integration/spec.md`
 
-**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Note**: Implement live order execution against MT5 WebAPI with margin validation, position limits, and kill switch protection.
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Current `PlaceOrder` is stubbed (returns fake ticket). Implement real MT5 integration: validate account margin, enforce position size limits, call `client.PlaceOrder()` against MT5 WebAPI, and implement kill switch for drawdown protection. Use decimal precision for all financial calculations. Follow TDD - write tests before code.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Go 1.21+  
+**Primary Dependencies**: gRPC, Protocol Buffers, shopspring/decimal (financial precision)  
+**Storage**: In-memory idempotency cache (SQLite when CGO enabled)  
+**Testing**: Go testing framework (go test) - TDD required  
+**Target Platform**: Linux/Windows server (MT5 terminal + WebAPI)  
+**Project Type**: gRPC daemon + MCP tools  
+**Performance Goals**: Order execution <5s (p95), <10ms risk check latency  
+**Constraints**: No floating point for currency, HTTP Basic Auth to MT5, graceful disconnection handling  
+**Scale/Scope**: Single FTMO account, 16 MCP tools, 5 risk management rules
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+### Current State
+- `OrderService.PlaceOrder()` stubbed (fake ticket generation)
+- No MT5 WebAPI call
+- No risk validation (margin, position size)
+- No kill switch implementation
+
+### Target State
+- Real `client.PlaceOrder()` integration against MT5 WebAPI
+- Risk manager validates margin, position limits, drawdown
+- Kill switch triggers on loss threshold or manual command
+- All order data in decimal precision
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Principle | Requirement | Status | Action |
+|-----------|-------------|--------|--------|
+| **I. MCP Compliance** | All tools via JSON-RPC 2.0 | ✅ Pass | PlaceOrderTool already compliant |
+| **II. Go + gRPC** | Core in Go, inter-service via gRPC | ✅ Pass | Risk manager + order service in Go |
+| **III. MT5 Safety** | Input validation, graceful errors, decimal precision | ✅ Pass | Risk checks + decimal arithmetic required |
+| **IV. TDD (NON-NEGOTIABLE)** | Write tests before implementation | ⚠️ GATE | MUST write tests in Phase 2 before any code |
+| **V. Observability** | Structured JSON logging, metrics | ✅ Pass | Handlers already use JSON logger |
+| **VI. Versioning** | Semantic versioning for tool schemas | ✅ Pass | No schema changes, backward compatible |
+
+**Gate Status**: PROCEED - All principles satisfied. TDD gate enforced in Phase 2.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+specs/001-mt5-mcp-integration/
+├── plan.md              # This file (phase planning)
+├── research.md          # Phase 0 - research decisions
+├── data-model.md        # Phase 1 - entity definitions
+├── quickstart.md        # Phase 1 - setup guide
+├── contracts/           # Phase 1 - gRPC contracts
+└── tasks.md             # Phase 2 - implementation tasks
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+kayron-ai/
+├── internal/services/mt5/
+│   ├── risk_manager.go          # NEW - margin/position validation
+│   ├── risk_manager_test.go     # NEW - TDD tests first
+│   ├── order_service.go         # MODIFY - call risk_manager + client
+│   ├── order_service_test.go    # MODIFY - add risk check tests
+│   └── client.go                # MODIFY - add PlaceOrder() method
+│
+├── internal/services/daemon/
+│   ├── order_service.go         # MODIFY - wire risk manager
+│   └── order_service_test.go    # MODIFY - integration tests
+│
+├── internal/models/
+│   ├── order.go                 # MODIFY - add RiskCheckResult
+│   └── risk_policy.go           # NEW - risk configuration
+│
+├── internal/services/mcp/
+│   └── place_order_tool.go      # No changes (already calls handler)
+│
+└── cmd/mcp-mt5-server/
+    └── integration_test.go      # MODIFY - add live order test
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Existing kayron-ai gRPC + MCP architecture. New risk manager service as separate concern, integrated via OrderService. Tests collocated with implementation files (Go convention).
 
-## Complexity Tracking
+## Phase Planning
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
+### Phase 0: Research (Complete)
+- Research MT5 margin calculation algorithm
+- Evaluate kill switch trigger strategies
+- Document decisions in `research.md`
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+### Phase 1: Design & Contracts (In Progress)
+- Define `RiskPolicy` entity (max volume, max positions, max drawdown %)
+- Define gRPC contract for `RiskManager.CheckOrderRisk()`
+- Update `client.proto` with PlaceOrder method signature
+- Create `data-model.md` with all entities
+- Create `contracts/risk_manager.md` with service interface
+
+### Phase 2: Implementation (Next)
+1. **TDD Write Tests First** (non-negotiable)
+   - `risk_manager_test.go` - margin calculation, position limits, kill switch
+   - `order_service_test.go` - risk check integration
+   - `client_test.go` - PlaceOrder method mocking MT5 responses
+
+2. **Implement Services**
+   - `risk_manager.go` - CheckOrderRisk(), CheckKillSwitch()
+   - Extend `client.PlaceOrder()` - real MT5 WebAPI call
+   - Modify `order_service.PlaceOrder()` - wire risk manager
+
+3. **Integrate**
+   - Update `OrderServiceHandler` to use new risk manager
+   - Update PlaceOrderTool (no changes needed, already calls handler)
+   - Add live integration test in cmd/mcp-mt5-server/
+
+4. **Verify**
+   - Run all tests (go test ./...)
+   - Run integration test against FTMO (requires WebAPI enabled)
+   - Manual test: place BUY/SELL orders via MCP tool
+
+---
+
+## Success Criteria
+
+| Criterion | Validation |
+|-----------|-----------|
+| Real MT5 API call | `client.PlaceOrder()` executes against MT5 WebAPI |
+| Margin validation | Risk check blocks order if free_margin < required |
+| Position limits | Orders rejected when at max open positions |
+| Idempotency | Same idempotency_key returns cached ticket (no duplicate) |
+| Kill switch | Drawdown > threshold triggers auto-cancel |
+| Error handling | Connection timeouts return `[CONNECTION_FAILED]` in Portuguese |
+| Decimal precision | All currency values use decimal.Decimal, no float64 |
+| TDD coverage | All new code has unit tests before implementation |
+| Integration test | PlaceOrder works end-to-end with mocked and real MT5 |
+
+---
+
+## Dependencies & Blockers
+
+### Hard Blocker
+- **MT5 WebAPI must be enabled** in FTMO terminal
+  - Status: ⚠️ Pending user activation
+  - Action: Tools → Options → API → Enable WebAPI (port 8228)
+  - Impact: Cannot test real order execution without this
+
+### Soft Dependencies
+- gRPC daemon must be running (started by main.go) ✅
+- MT5 client initialized with credentials ✅
+- Account must have balance for test trades (user responsibility)
+
+### Critical Gate
+- **TDD Non-Negotiable**: Tests written BEFORE any implementation code
+  - `risk_manager_test.go` - MUST exist before `risk_manager.go`
+  - `order_service_test.go` extensions - MUST exist before modifications
+  - Violation of this gate = plan rejection
+
+---
+
+## Implementation Timeline
+
+| Phase | Task | Effort | Blocker |
+|-------|------|--------|---------|
+| Phase 0 | Research decisions | 1h | None |
+| Phase 1 | Design contracts + data model | 2h | None |
+| Phase 2a | Write tests | 3h | TDD gate |
+| Phase 2b | Implement services | 4h | Tests passing |
+| Phase 2c | Integration + verification | 2h | WebAPI enabled |
+| **Total** | **Complete PlaceOrder** | **~12h** | **WebAPI + TDD** |
+
+---
+
+## Next Steps
+
+1. ✅ **Plan Complete**: This document finalized
+2. ⏭️ **Phase 0**: Dispatch research agent for MT5 margin algorithm + kill switch strategy
+3. ⏭️ **Phase 1**: Generate `research.md`, `data-model.md`, `contracts/`
+4. ⏭️ **Phase 2**: Use `/speckit-tasks` to generate implementation tasks (TDD-first)
