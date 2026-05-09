@@ -13,3 +13,4 @@ vendor/
 .go-build/
 internal/integrations/claude-code/node_modules/
 bin/
+bin/

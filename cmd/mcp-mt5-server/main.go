@@ -76,8 +76,6 @@ func NewMCPServer(cfg *config.Config) *MCPServer {
 	queue, err := models.NewQueue("./mt5_queue.db")
 	if err != nil {
 		// For testing without CGO: skip queue, still functional for basic testing
-		logger := logger.New("Main")
-		logger.Info(fmt.Sprintf("Warning: queue initialization failed (requires CGO): %v. Proceeding without persistence.", err))
 		queue = nil
 	}
 

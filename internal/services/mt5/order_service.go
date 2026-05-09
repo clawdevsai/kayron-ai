@@ -51,7 +51,7 @@ func (os *OrderService) PlaceOrder(ctx context.Context, order *models.Order) (in
 		order.Price,
 		*order.StopLoss,
 		*order.TakeProfit,
-		order.Comment,
+		"", // no comment field in model
 	)
 	if err != nil {
 		os.logger.Error("Failed to place order on MT5", err)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/models"
+	"github.com/shopspring/decimal"
 )
 
 // PositionService handles MT5 position queries and management
