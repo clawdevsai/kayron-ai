@@ -10,6 +10,8 @@ export interface MCPConfig {
   cacheTtlMinutes?: number;
   maxRetries?: number;
   backoffMs?: number;
+  logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  reconnectMaxRetries?: number;
 }
 
 export interface ToolDefinition {

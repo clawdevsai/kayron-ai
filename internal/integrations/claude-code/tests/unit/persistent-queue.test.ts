@@ -3,20 +3,21 @@
  * Queue persists to ~/.kayron-queue.jsonl, survives reconnect
  */
 
-import { PersistentQueue, QueuedOperation } from '../../mcp-client/persistent-queue';
+import { OperationsQueue } from '../../mcp-client/queue';
+import { PendingOperationModel } from '../../mcp-client/data-model';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-describe('PersistentQueue', () => {
-  let queue: PersistentQueue;
+describe('OperationsQueue', () => {
+  let queue: OperationsQueue;
   const testQueuePath = path.join(os.homedir(), '.kayron-queue-test.jsonl');
 
-  beforeEach(() => {
+  beforeEach(async () => {
     if (fs.existsSync(testQueuePath)) {
       fs.unlinkSync(testQueuePath);
     }
-    queue = new PersistentQueue(testQueuePath);
+    queue = new OperationsQueue();
   });
 
   afterEach(() => {

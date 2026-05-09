@@ -18,6 +18,7 @@ describe('SchemaValidator', () => {
       const tool: ToolDefinition = {
         name: 'place-order',
         description: 'Place trading order',
+        version: '1.0.0',
         inputSchema: {
           type: 'object',
           properties: {

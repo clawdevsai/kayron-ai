@@ -18,6 +18,7 @@ export class SchemaValidator {
     return {
       name: tool.name,
       description: tool.description,
+      version: tool.version,
       inputSchema: this.normalize(tool.inputSchema),
       outputSchema: this.normalize(tool.outputSchema),
     };

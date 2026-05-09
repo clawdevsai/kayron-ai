@@ -85,7 +85,7 @@ export class MCPClient {
         });
 
         const timeout = setTimeout(() => {
-          if (this.socket && !this.socket.connecting === false) {
+          if (this.socket && this.socket.connecting) {
             this.socket.destroy();
             this.socket = null;
           }
@@ -174,10 +174,10 @@ export class MCPClient {
    */
   async listTools(): Promise<ToolDefinition[]> {
     // Check cache first
-    const cached = this.cache.load();
-    if (cached && this.cache.isValid()) {
+    const cached = await this.cache.load();
+    if (cached && await this.cache.isValid()) {
       this.logger.debug('Tool schema loaded from cache');
-      return cached.tools || [];
+      return cached || [];
     }
 
     // Query server if cache miss/expired
@@ -186,11 +186,7 @@ export class MCPClient {
     const tools: ToolDefinition[] = response.result || [];
 
     // Save to cache
-    this.cache.save({
-      timestamp: new Date().toISOString(),
-      tools,
-      toolCount: tools.length,
-    });
+    await this.cache.save(tools);
 
     this.logger.info('Tool schema cached', { toolCount: tools.length });
     return tools;

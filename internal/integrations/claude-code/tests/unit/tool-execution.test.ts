@@ -5,7 +5,7 @@
 
 import { ToolInvoker } from '../../mcp-client/tool-invoker';
 import { SchemaValidator } from '../../mcp-client/schema-validator';
-import { ToolDefinition, JSONSchema } from '../../mcp-client/types';
+import { ToolDefinition } from '../../mcp-client/types';
 import { Logger } from '../../mcp-client/logger';
 
 describe('ToolInvoker', () => {
@@ -16,6 +16,7 @@ describe('ToolInvoker', () => {
   const placeOrderTool: ToolDefinition = {
     name: 'place-order',
     description: 'Place a trading order',
+    version: '1.0.0',
     inputSchema: {
       type: 'object',
       properties: {
@@ -206,14 +207,14 @@ describe('ToolInvoker', () => {
         toolName: 'place-order',
         inputParams: params,
         output,
-        error: null,
+        error: undefined,
         executionDurationMs: 150,
         retryCount: 0,
         idempotencyKey: 'key123',
       });
 
       const log = invoker.getLastLog();
-      expect(log?.error).toBeNull();
+      expect(log?.error).toBeUndefined();
       expect(log?.output).toEqual(output);
     });
 
@@ -224,7 +225,7 @@ describe('ToolInvoker', () => {
       invoker.logExecution({
         toolName: 'place-order',
         inputParams: params,
-        output: null,
+        output: undefined,
         error,
         executionDurationMs: 200,
         retryCount: 0,
@@ -233,7 +234,7 @@ describe('ToolInvoker', () => {
 
       const log = invoker.getLastLog();
       expect(log?.error).toBe(error);
-      expect(log?.output).toBeNull();
+      expect(log?.output).toBeUndefined();
     });
 
     it('should include idempotency key in audit log', () => {
@@ -244,7 +245,7 @@ describe('ToolInvoker', () => {
         toolName: 'place-order',
         inputParams: params,
         output: { ticket: 12345 },
-        error: null,
+        error: undefined,
         executionDurationMs: 100,
         retryCount: 0,
         idempotencyKey,
@@ -261,7 +262,7 @@ describe('ToolInvoker', () => {
         toolName: 'place-order',
         inputParams: params,
         output: { ticket: 12345 },
-        error: null,
+        error: undefined,
         executionDurationMs: 500,
         retryCount: 2,
         idempotencyKey: 'key',
