@@ -1,0 +1,39 @@
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-ftmo-demo.yaml
+[0;31m[ERROR][0m Binary not found: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-mt5-server.exe
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-ftmo-demo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/08 23:48:00 {"timestamp":"2026-05-09T02:48:00Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/08 23:48:00 {"timestamp":"2026-05-09T02:48:00Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/08 23:48:00 {"timestamp":"2026-05-09T02:48:00Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/08 23:48:00 {"timestamp":"2026-05-09T02:48:00Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-ftmo-demo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/08 23:48:20 {"timestamp":"2026-05-09T02:48:20Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/08 23:48:20 {"timestamp":"2026-05-09T02:48:20Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/08 23:48:20 {"timestamp":"2026-05-09T02:48:20Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/08 23:48:20 {"timestamp":"2026-05-09T02:48:20Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+2026/05/08 23:49:25 {"timestamp":"2026-05-09T02:49:25Z","level":"INFO","component":"AccountInfoTool","message":"Executing account-info tool"}
+2026/05/08 23:49:25 {"timestamp":"2026-05-09T02:49:25Z","level":"INFO","component":"AccountServiceHandler","message":"GetAccountInfo request received"}
+2026/05/08 23:49:25 {"timestamp":"2026-05-09T02:49:25Z","level":"INFO","component":"AccountService","message":"Querying account information"}
+2026/05/08 23:49:25 {"timestamp":"2026-05-09T02:49:25Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
+2026/05/08 23:49:25 {"timestamp":"2026-05-09T02:49:25Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
+2026/05/08 23:49:25 {"timestamp":"2026-05-09T02:49:25Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
+2026/05/08 23:51:00 {"timestamp":"2026-05-09T02:51:00Z","level":"INFO","component":"AccountInfoTool","message":"Executing account-info tool"}
+2026/05/08 23:51:00 {"timestamp":"2026-05-09T02:51:00Z","level":"INFO","component":"AccountServiceHandler","message":"GetAccountInfo request received"}
+2026/05/08 23:51:00 {"timestamp":"2026-05-09T02:51:00Z","level":"INFO","component":"AccountService","message":"Querying account information"}
+2026/05/08 23:51:00 {"timestamp":"2026-05-09T02:51:00Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
+2026/05/08 23:51:00 {"timestamp":"2026-05-09T02:51:00Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
+2026/05/08 23:51:00 {"timestamp":"2026-05-09T02:51:00Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
+2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountInfoTool","message":"Executing account-info tool"}
+2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountServiceHandler","message":"GetAccountInfo request received"}
+2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountService","message":"Querying account information"}
+2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
+2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
+2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
