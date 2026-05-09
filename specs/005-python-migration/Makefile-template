@@ -1,0 +1,85 @@
+.PHONY: help install proto build test run clean bench docker
+
+PYTHON := python3.14
+POETRY := poetry
+PROTOC := protoc
+SERVICES := services/mt5-adapter services/api-gateway
+
+help:
+	@echo "Kayron AI - Python 3.14 Migration Build"
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@echo "  install       Install dependencies (poetry)"
+	@echo "  proto         Compile protocol buffers"
+	@echo "  build         Build all services"
+	@echo "  test          Run tests (pytest)"
+	@echo "  test-cov      Run tests with coverage"
+	@echo "  run           Start services locally (dev)"
+	@echo "  bench         Run performance benchmarks"
+	@echo "  docker        Build Docker images (multi-stage, alpine)"
+	@echo "  clean         Remove __pycache__, .pyc, build artifacts"
+
+install:
+	$(POETRY) install --no-root
+	$(POETRY) run python -m pip install --upgrade pip
+
+proto: $(patsubst %, %/proto/%.proto, $(SERVICES))
+	@echo "Compiling protocol buffers..."
+	@for svc in $(SERVICES); do \
+		if [ -d $$svc/proto ]; then \
+			$(PROTOC) -I$$svc/proto \
+				--python_out=$$svc/src \
+				--grpc_python_out=$$svc/src \
+				$$svc/proto/*.proto; \
+		fi; \
+	done
+	@echo "✓ Protos compiled"
+
+build: proto
+	@echo "Building services..."
+	@for svc in $(SERVICES); do \
+		if [ -f $$svc/pyproject.toml ]; then \
+			cd $$svc && $(POETRY) install --no-root && cd -; \
+		fi; \
+	done
+	@echo "✓ Build complete"
+
+test:
+	$(POETRY) run pytest tests/ -v --asyncio-mode=auto
+
+test-cov:
+	$(POETRY) run pytest tests/ -v --cov=services --cov-report=html
+
+run: proto
+	@echo "Starting dev servers..."
+	$(POETRY) run uvicorn services.api-gateway.src.main:app --host 0.0.0.0 --port 8000 --reload &
+	$(POETRY) run python services/mt5-adapter/src/daemon.py &
+	@echo "✓ Servers running. Press Ctrl+C to stop"
+
+bench:
+	$(POETRY) run pytest tests/ -v -k bench --benchmark-only
+
+clean:
+	@echo "Cleaning build artifacts..."
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	find . -type f -name "*.pyo" -delete
+	find . -type d -name .pytest_cache -exec rm -rf {} +
+	find . -type d -name .mypy_cache -exec rm -rf {} +
+	find . -type d -name dist -exec rm -rf {} +
+	find . -type d -name build -exec rm -rf {} +
+	find . -type f -name "*_pb2.py" -o -name "*_pb2_grpc.py" -delete
+	@echo "✓ Cleaned"
+
+docker:
+	@echo "Building Docker images (multi-stage)..."
+	docker build -t kayron/mt5-adapter:latest -f docker/Dockerfile.mt5-adapter .
+	docker build -t kayron/api-gateway:latest -f docker/Dockerfile.api-gateway .
+	@echo "✓ Images built"
+
+docker-bench:
+	docker run --rm kayron/mt5-adapter:latest /app/bin/bench.py
+	docker run --rm kayron/api-gateway:latest /app/bin/bench.py
+
+.DEFAULT_GOAL := help

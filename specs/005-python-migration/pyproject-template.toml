@@ -1,0 +1,60 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "kayron-mt5-adapter"
+version = "0.1.0"
+description = "MT5 gRPC daemon - high-performance, low-cost"
+authors = [{name = "Kayron AI", email = "dev@kayron.ai"}]
+requires-python = ">=3.14"
+readme = "README.md"
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.14"
+# gRPC
+grpcio = "^1.60"
+grpcio-tools = "^1.60"
+# Async
+aiogrpc = "^1.1"
+# Web
+fastapi = "^0.110"
+uvicorn = {version = "^0.28", extras = ["standard"]}
+# Database
+sqlalchemy = "^2.0"
+asyncpg = "^0.29"  # PostgreSQL async driver
+# Observability
+structlog = "^24.1"
+# Type hints
+pydantic = "^2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+pytest-asyncio = "^0.23"
+pytest-cov = "^4.1"
+black = "^24.1"
+ruff = "^0.2"
+mypy = "^1.8"
+grpcio-tools = "^1.60"
+
+[tool.poetry.group.test.dependencies]
+pytest-benchmark = "^4.0"
+
+[tool.black]
+line-length = 88
+target-version = ["py314"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+select = ["E", "F", "W", "I"]  # PEP8, Pyflakes, Warnings, isort
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

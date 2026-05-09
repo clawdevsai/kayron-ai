@@ -5,6 +5,15 @@
 **Status**: Draft  
 **Input**: User description: Go to Python 3.14 migration, remove Go code, general cleanup, refactor build scripts, apply clean code principles
 
+## Clarifications
+
+### Session 2026-05-09
+- Q: How should Python services be deployed during migration? → A: All-at-once deployment
+- Q: Observability strategy post-migration? → A: Python-native stack (logging/metrics/tracing)
+- Q: Go services without Python equivalent library? → A: Partial migration acceptable, evaluate case-by-case per service
+- Q: Database schema changes - keep or upgrade to Python patterns? → A: Upgrade to Python ORM patterns with versioned migrations
+- Q: Performance if 11-15% slower than Go baseline? → A: Accept deployment, case-by-case stricter evaluation for critical services
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -66,12 +75,12 @@ Development team refactors Makefiles and shell scripts for consistency, simplici
 2. **Given** shell scripts, **When** executed with invalid inputs, **Then** errors are caught and reported clearly (not silent failures)
 3. **Given** build artifacts, **When** produced, **Then** scripts generate no warnings and complete in <5 seconds for routine operations
 
-### Edge Cases
+### Edge Cases & Resolutions
 
-- What happens if Python 3.14 dependencies conflict with system packages?
-- How does migration handle database schema changes between Go and Python ORM layers?
-- What if some Go code has no Python equivalent library (e.g., specialized C bindings)?
-- How are build-time constants/version info propagated in Python (was hardcoded in Go)?
+- **Python 3.14 dependency conflicts**: Managed via venv isolation and explicit pinned versions in requirements.txt. Escalate to planning if unresolvable.
+- **Database schema changes**: Resolved — schemas upgraded to Python ORM patterns with versioned migrations and rollback capability.
+- **Go code without Python equivalent library**: Resolved — partial migration acceptable; evaluate case-by-case during planning. Services without equivalent may remain in Go if justified and documented.
+- **Build-time constants/version info**: Deferred to planning — determine whether to use packaging metadata, version file, or environment variables at runtime.
 
 ## Requirements *(mandatory)*
 
@@ -91,7 +100,9 @@ Development team refactors Makefiles and shell scripts for consistency, simplici
 - **FR-007**: API contracts (request/response signatures) MUST remain unchanged between Go and Python implementations
 - **FR-008**: Code MUST follow Python PEP 8 style guide with no dead code, unused imports, or duplicated logic
 - **FR-009**: All integration tests MUST pass with Python implementation without modification
-- **FR-010**: Performance metrics (latency, throughput) MUST meet or exceed Go baseline within 10%
+- **FR-010**: Performance metrics (latency, throughput) MUST meet or exceed Go baseline within 10% (case-by-case evaluation for critical services; up to 15% acceptable for non-critical)
+- **FR-011**: All services deployed simultaneously (all-at-once strategy) with full validation in staging before production promotion
+- **FR-012**: Observability stack migrated to Python-native tools (logging, metrics, tracing) rather than maintaining Go parity
 
 ### Key Entities
 
@@ -109,10 +120,14 @@ Development team refactors Makefiles and shell scripts for consistency, simplici
 
 ### Measurable Outcomes
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-001**: All integration tests pass with Python services (100% pass rate)
+- **SC-002**: Zero Go files remain in repository (verified via `find . -name "*.go"`)
+- **SC-003**: Build time for routine operations does not exceed 5 seconds
+- **SC-004**: API response latency within 10% of Go baseline for critical services; up to 15% acceptable for non-critical services
+- **SC-005**: Codebase passes linting (pylint/flake8) with no errors and warnings <5 per file
+- **SC-006**: Build scripts execute without warnings or silent failures
+- **SC-007**: Documentation updated to reflect Python-only build/deployment process
+- **SC-008**: All developers can build and test locally using only Python tooling
 
 ## Assumptions
 
@@ -122,7 +137,13 @@ Development team refactors Makefiles and shell scripts for consistency, simplici
   chosen when the feature description did not specify certain details.
 -->
 
-- [Assumption about target users, e.g., "Users have stable internet connectivity"]
-- [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
-- [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
-- [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+- Python 3.14 is the target runtime and will be available in all deployment environments
+- Existing Go services have clear functional specifications that can be verified via contract tests
+- Database schemas will be upgraded to Python ORM best practices with versioned, backward-compatible migrations
+- External dependencies (grpc, protobuf, etc.) have Python equivalents available via pip, or acceptable to implement case-by-case
+- Build system currently allows simultaneous Go and Python tooling (no conflicts during transition)
+- Performance targets are realistic given Python vs Go runtime characteristics (10-15% degradation acceptable)
+- Team has Python expertise or access to resources for implementation
+- All-at-once deployment strategy: all services promoted to production together after staging validation
+- Partial migration acceptable: services without Python equivalents can be evaluated case-by-case (may remain in Go if justified)
+- Observability stack will migrate to Python-native tools (e.g., structured logging, Python-native metrics/tracing)

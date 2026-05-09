@@ -1,0 +1,215 @@
+================================================================================
+SQLAlchemy 2.0 Async Configuration - Quick Reference Card
+High-Throughput Microservices (1000+ req/s)
+================================================================================
+
+RECOMMENDED DEFAULTS (8-core, 1000+ req/s)
+================================================================================
+pool_size              = 20
+max_overflow           = 10
+pool_recycle           = 3600
+pool_pre_ping          = True
+timeout                = 30
+echo                   = False
+echo_pool              = False
+expire_on_commit       = False (CRITICAL)
+autoflush              = False
+autocommit             = False
+
+POOL SIZE BY CPU CORES
+================================================================================
+CPU Cores  |  pool_size  |  max_overflow  |  Capacity
+-----------+-------------+----------------+----------
+4          |  8-16       |  4-8           |  12-24
+8          |  16-32      |  8-16          |  24-48
+16         |  32-64      |  16-32         |  48-96
+32         |  64-128     |  32-64         |  96-192
+
+Formula: pool_size = 2-4 × CPU_cores
+         max_overflow = pool_size / 2
+
+CREATE ENGINE - MINIMAL EXAMPLE
+================================================================================
+from sqlalchemy.ext.asyncio import create_async_engine
+
+engine = create_async_engine(
+    "postgresql+asyncpg://user:pass@localhost/db",
+    pool_size=20,
+    max_overflow=10,
+    pool_recycle=3600,
+    pool_pre_ping=True,
+    timeout=30,
+    echo=False,
+)
+
+ASYNC SESSIONMAKER - CORRECT PATTERN
+================================================================================
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+session_factory = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,  # CRITICAL
+    autoflush=False,
+    autocommit=False,
+)
+
+# Per-request usage:
+async with session_factory() as session:
+    result = await session.execute(select(User))
+    users = result.scalars().all()
+    await session.commit()
+
+POOL STATISTICS API
+================================================================================
+pool = engine.pool
+
+pool.checkedout()      # Active connections (in use)
+pool.checkedin()       # Available to checkout
+pool.size()            # Total pooled connections
+pool.overflow()        # Temporary connections active
+pool.url               # Connection string
+pool.timeout           # Queue wait timeout
+
+Example output:
+  checkedout: 15
+  checkedin: 5
+  size: 20
+  overflow: 0
+
+MONITORING TARGETS
+================================================================================
+Metric                 Target        Alert Threshold
+--------------------- -------------- -----------------
+Pool utilization       60-80%         > 90%
+Queue wait time        < 5ms          > 50ms
+Active connections     < pool_size    == pool_size
+Connection errors      0              > 0
+p99 latency            < 100ms        > 1s
+
+HEALTH CHECK
+================================================================================
+async def health_check(engine):
+    try:
+        async with engine.connect() as conn:
+            await conn.execute("SELECT 1")
+            return True
+    except Exception as e:
+        print(f"Health check failed: {e}")
+        return False
+
+asyncio.run(health_check(engine))
+
+CRITICAL ANTI-PATTERNS
+================================================================================
+WRONG:
+  expire_on_commit=True
+    -> Lazy loads block event loop (deadlock)
+
+WRONG:
+  pool_pre_ping=False
+    -> Stale connections slip through
+
+WRONG:
+  pool_recycle=None
+    -> No connection recycling, DB timeout errors
+
+WRONG:
+  pool_size=1, max_overflow=100
+    -> Defeats pooling benefit, creates 100 connections
+
+WRONG:
+  ThreadLocalRegistry in async code
+    -> Race conditions and deadlocks
+
+RATE LIMITING (asyncio.Semaphore)
+================================================================================
+import asyncio
+
+semaphore = asyncio.Semaphore(20)  # Match pool_size
+
+async def query(session, sql):
+    async with semaphore:
+        return await session.execute(sql)
+
+CONTEXT-SCOPED SESSIONS (FastAPI)
+================================================================================
+from sqlalchemy.ext.asyncio import async_scoped_session
+import contextvars
+
+request_id = contextvars.ContextVar("request_id")
+
+AsyncSessionLocal = async_scoped_session(
+    async_sessionmaker(engine, expire_on_commit=False),
+    scopefunc=lambda: request_id.get(),
+)
+
+# In dependency:
+async def get_session():
+    async with AsyncSessionLocal() as session:
+        yield session
+
+GRACEFUL SHUTDOWN
+================================================================================
+# On application shutdown:
+await engine.dispose()  # Drain all connections from pool
+
+EAGER LOADING (Prevent lazy load blocks)
+================================================================================
+from sqlalchemy.orm import selectinload, joinedload
+
+# GOOD: Eager load relationships
+result = await session.execute(
+    select(User).options(
+        selectinload(User.posts),
+        selectinload(User.comments)
+    )
+)
+users = result.scalars().unique().all()
+
+# Avoid lazy loading:
+for user in users:
+    print(user.posts)  # Already loaded, no await needed
+
+TUNING FLOWCHART
+================================================================================
+1. Set pool_size = 2 × CPU_cores
+2. Run 1000+ req/s load test
+3. Monitor: active connections, queue wait time
+4. If active connections > 90% of pool_size:
+   -> Increase pool_size by 20%
+5. If queue wait time > 50ms:
+   -> Increase max_overflow by 20%
+6. Verify p99 latency < 100ms
+7. If still slow:
+   -> Add connection pooling proxy (PgBouncer, ProxySQL)
+   -> Check slow query log
+   -> Profile database queries
+
+ASYNCPG-SPECIFIC TUNING
+================================================================================
+engine = create_async_engine(
+    "postgresql+asyncpg://user:pass@localhost/db",
+    connect_args={
+        "command_timeout": 60,
+        "timeout": 30,
+        "statement_cache_size": 20,
+        "max_cached_statement_lifetime": 300,
+        "max_cacheable_statement_size": 15000,
+    },
+    pool_size=20,
+    max_overflow=10,
+    pool_recycle=3600,
+    pool_pre_ping=True,
+)
+
+REFERENCE LINK
+================================================================================
+SQLAlchemy 2.0 Async:
+  https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
+
+asyncio concurrency:
+  https://docs.python.org/3/library/asyncio-task.html
+
+PostgreSQL connection tuning:
+  https://wiki.postgresql.org/wiki/Number_Of_Database_Connections

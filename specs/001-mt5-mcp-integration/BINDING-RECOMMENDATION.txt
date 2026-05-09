@@ -1,0 +1,213 @@
+================================================================================
+MT5 PYTHON BINDING RECOMMENDATION - EXECUTIVE SUMMARY
+================================================================================
+
+RECOMMENDATION: gRPC Daemon Pattern (Option 3)
+Production Score: 27/30 (Best Overall)
+
+================================================================================
+THE FOUR OPTIONS AT A GLANCE
+================================================================================
+
+1. mt5-async (Third-party Async Wrapper)
+   ─────────────────────────────────────
+   Performance:  Excellent (direct DLL: <1ms)
+   Reliability:  Poor (unmaintained since 2021)
+   Pooling:      Manual (user must implement)
+   Platforms:    Windows only
+   Score:        10/30 - NOT RECOMMENDED (abandonment risk)
+
+2. Native ctypes Bindings
+   ─────────────────────────────────────
+   Performance:  Excellent (direct DLL: <1ms)
+   Reliability:  Poor (no error recovery)
+   Pooling:      None (build from scratch)
+   Platforms:    Windows only
+   Score:        8/30 - NOT RECOMMENDED (fragile, high maintenance)
+
+3. gRPC Daemon Pattern [RECOMMENDED]
+   ─────────────────────────────────────
+   Performance:  Good (HTTP+gRPC: 5-10ms)
+   Reliability:  Excellent (built-in recovery)
+   Pooling:      Built-in at daemon (enforces MT5 single connection)
+   Platforms:    Cross-platform (Win/Linux/Mac)
+   Score:        27/30 - BEST FOR PRODUCTION
+
+4. Direct HTTP/REST (MT5 WebAPI)
+   ─────────────────────────────────────
+   Performance:  Good (HTTP: 2-5ms)
+   Reliability:  Fair (standard HTTP; no MT5 pooling)
+   Pooling:      Per-client (agents compete for connections)
+   Platforms:    Cross-platform (Win/Linux/Mac)
+   Score:        23/30 - VIABLE FALLBACK (not ideal for multi-agent)
+
+================================================================================
+WHY gRPC DAEMON WINS
+================================================================================
+
+✓ Solves MT5 Single-Connection Constraint
+  MT5 only allows one active connection per terminal. A daemon enforces this
+  transparently while serving multiple agents.
+
+✓ Built-in Connection Pooling
+  Daemon manages MT5 connection lifecycle. No manual pooling logic needed.
+
+✓ Production-Grade Error Recovery
+  Daemon can implement sophisticated retry strategies, exponential backoff,
+  circuit breaker patterns.
+
+✓ Clean Architecture
+  Decouples Python clients from MT5 DLL complexity. RPC interface is simple,
+  testable, and debuggable.
+
+✓ Scalability
+  Multiple agents → One daemon → One MT5 connection. Efficient resource use.
+
+✓ Cross-platform
+  Works on Windows, Linux, macOS. Not locked to Windows-only DLL.
+
+✓ Aligns with Project
+  Project already uses Go + gRPC. Adds gRPC daemon (natural fit).
+
+✓ Future-proof
+  Daemon updates don't break clients. Decoupling provides flexibility.
+
+================================================================================
+PERFORMANCE TRADEOFF
+================================================================================
+
+Raw Latency Comparison:
+  Direct DLL:     <1ms    (ctypes, mt5-async)
+  gRPC Daemon:    5-10ms  (HTTP + gRPC + RPC overhead)
+  HTTP/REST:      2-5ms   (HTTP only)
+
+Why 5-10ms is Acceptable for MT5:
+  - MT5 operations are not latency-critical (unlike HFT)
+  - Typical broker execution time: 50-500ms
+  - 5ms overhead is <1% of total execution time
+  - Benefit (reliability, pooling, scalability) >> cost (5ms overhead)
+
+================================================================================
+THE DAEMON PATTERN (Architecture)
+================================================================================
+
+  Python MCP Client
+       │
+       ├─► Agent 1 ─┐
+       ├─► Agent 2 ─┼──► MT5 Daemon (gRPC) ──► MT5 WebAPI (HTTP) ──► MT5 Terminal
+       ├─► Agent 3 ─┤                 │
+       └─► Agent N ─┘                 └─► [Connection Pool]
+                                           [Error Recovery]
+                                           [Single MT5 Connection]
+
+Benefits:
+  - Agents don't fight over MT5 connection
+  - Daemon enforces single connection to MT5 (MT5 constraint)
+  - Daemon implements pooling logic once, used by all agents
+  - Easy to add logging, metrics, circuit breakers at daemon
+
+================================================================================
+RECOMMENDATION DECISION TREE
+================================================================================
+
+Does your use case require...?
+
+1. Multiple simultaneous agents?
+   → YES: gRPC Daemon Pattern (ONLY viable option)
+   → NO:  Skip to Q2
+
+2. Cross-platform support (Linux, macOS)?
+   → YES: gRPC Daemon or HTTP/REST
+   → NO:  Any option (but gRPC Daemon still best)
+
+3. Production-grade reliability?
+   → YES: gRPC Daemon Pattern (built-in error recovery)
+   → NO:  HTTP/REST (simpler, but less robust)
+
+4. Ability to deploy 2 processes (daemon + client)?
+   → YES: gRPC Daemon Pattern (best overall)
+   → NO:  HTTP/REST (single process, but less pooling)
+
+DECISION MATRIX:
+  Multi-agent + Cross-platform + Reliable  →  gRPC Daemon Pattern [RECOMMENDED]
+  Single-client + Simplicity > Reliability  →  HTTP/REST (fallback)
+  Performance > Everything Else             →  NOT RECOMMENDED (maintenance cost too high)
+
+================================================================================
+IMPLEMENTATION CHECKLIST (gRPC Daemon)
+================================================================================
+
+Phase 1: Design
+  [ ] Create gRPC service definitions (.proto files)
+  [ ] Define MT5 operations as RPC methods
+  [ ] Document connection pool strategy (queue, timeout, retry logic)
+
+Phase 2: Implementation
+  [ ] Build Go daemon with MT5 WebAPI client
+  [ ] Implement gRPC service (accounts, quotes, orders)
+  [ ] Add connection pooling at daemon
+  [ ] Add error recovery (retries, backoff, circuit breaker)
+  [ ] Add structured logging + metrics
+
+Phase 3: Python Client
+  [ ] Generate Python gRPC client from .proto
+  [ ] Build MT5Client wrapper (async-friendly)
+  [ ] Add error handling + retry logic
+  [ ] Write integration tests
+
+Phase 4: Deployment
+  [ ] Daemon as systemd service or Docker
+  [ ] Health checks + monitoring
+  [ ] Production testing (multi-agent scenarios)
+  [ ] Documentation + troubleshooting guide
+
+================================================================================
+WHEN TO USE EACH OPTION (Decision Table)
+================================================================================
+
+Use gRPC Daemon if:
+  ✓ Multiple agents/clients will use MT5
+  ✓ Cross-platform support needed
+  ✓ Production reliability is critical
+  ✓ Can deploy 2 processes
+  ✓ Team familiar with gRPC/Go
+
+Use HTTP/REST if:
+  ✓ Single client scenario
+  ✓ Simplicity is paramount
+  ✓ Can't deploy daemon
+  ✓ Performance < 10ms is not required
+  ✓ OK with potential connection exhaustion
+
+Use ctypes if:
+  ✗ Performance MUST be <1ms AND Windows-only
+  ✗ NOT RECOMMENDED (maintenance burden too high)
+
+Use mt5-async if:
+  ✗ NEVER - Unmaintained since 2021 (high risk)
+
+================================================================================
+FINAL VERDICT
+================================================================================
+
+RECOMMENDED APPROACH FOR PRODUCTION:
+  → gRPC Daemon Pattern (Option 3)
+
+KEY RATIONALE:
+  1. Solves MT5 single-connection constraint at architectural level
+  2. Built-in connection pooling + error recovery
+  3. Scales from 1 to N agents without code changes
+  4. Cross-platform (not locked to Windows DLL)
+  5. Aligns with project architecture (Go + gRPC)
+  6. Production reliability > micro-optimization
+  7. 5ms overhead is negligible for MT5 domain
+
+EXPECTED TRADEOFFS:
+  + Reliability, scalability, maintainability
+  - 5-10ms latency overhead (acceptable)
+  - Process management complexity (minimal with Docker/systemd)
+
+STATUS: READY FOR IMPLEMENTATION
+Document: /specs/001-mt5-mcp-integration/MT5-PYTHON-BINDING-ANALYSIS.md
+
+================================================================================
