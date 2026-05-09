@@ -2,7 +2,7 @@
 # Credenciais fornecidas: validadas para MCP integration
 
 mt5:
-  server: "FTMO-Demo"          # FTMO Demo server
+  server: "localhost"          # FTMO Demo server
   login: "1513212141"          # Account login
   password: "dIh*r!5l$7l"      # Account password (secure: use env var in production)
   timeout: 29000               # 29 segundos timeout

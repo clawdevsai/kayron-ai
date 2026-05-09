@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mt5-grpc-server
+  namespace: default
+  labels:
+    app: mt5-grpc-server
+spec:
+  type: ClusterIP
+  selector:
+    app: mt5-grpc-server
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: 50051
+    protocol: TCP
+  - name: health
+    port: 50052
+    targetPort: 50052
+    protocol: TCP
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mt5-config
+  namespace: default
+data:
+  server: "MetaQuotes-Demo"
+  log_level: "INFO"
+  db_path: "/data/mcp-server.db"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mt5-credentials
+  namespace: default
+type: Opaque
+stringData:
+  login: "YOUR_MT5_LOGIN"
+  password: "YOUR_MT5_PASSWORD"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mt5-grpc-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mt5-grpc-server
+  namespace: default
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mt5-grpc-server
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mt5-grpc-server
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mt5-grpc-server
+subjects:
+- kind: ServiceAccount
+  name: mt5-grpc-server
+  namespace: default

@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mt5-grpc-server
+  namespace: default
+  labels:
+    app: mt5-grpc-server
+    version: v1
+spec:
+  replicas: 1  # Single replica due to single MT5 connection constraint
+  strategy:
+    type: Recreate  # Must recreate due to single connection
+  selector:
+    matchLabels:
+      app: mt5-grpc-server
+  template:
+    metadata:
+      labels:
+        app: mt5-grpc-server
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "50051"
+    spec:
+      serviceAccountName: mt5-grpc-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: mt5-grpc-server
+        image: mt5-grpc-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50051
+          protocol: TCP
+        - name: health
+          containerPort: 50052
+          protocol: TCP
+
+        env:
+        - name: MT5_LOGIN
+          valueFrom:
+            secretKeyRef:
+              name: mt5-credentials
+              key: login
+        - name: MT5_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mt5-credentials
+              key: password
+        - name: MT5_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: mt5-config
+              key: server
+        - name: GRPC_PORT
+          value: "50051"
+        - name: DB_PATH
+          value: /data/mcp-server.db
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: mt5-config
+              key: log_level
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mt5-grpc-pvc
+      - name: config
+        configMap:
+          name: mt5-config
+
+      nodeSelector:
+        kubernetes.io/os: linux
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - mt5-grpc-server
+              topologyKey: kubernetes.io/hostname
+
+      terminationGracePeriodSeconds: 30

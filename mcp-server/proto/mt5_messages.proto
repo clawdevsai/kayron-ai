@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package mt5;
+
+option go_package = "github.com/kayron-ai/mt5-mcp/pb";
+option java_package = "com.kayron.mt5.pb";
+option java_outer_classname = "MT5MessagesPb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// Common message types for MT5 operations
+
+// OperationStatus enumerates operation lifecycle states
+enum OperationStatus {
+  OPERATION_STATUS_UNSPECIFIED = 0;
+  QUEUED = 1;
+  EXECUTING = 2;
+  COMPLETED = 3;
+  FAILED = 4;
+  EXPIRED = 5;
+}
+
+// OperationType enumerates all supported MT5 operations
+enum OperationType {
+  OPERATION_TYPE_UNSPECIFIED = 0;
+  PLACE_ORDER = 1;
+  MODIFY_ORDER = 2;
+  CANCEL_ORDER = 3;
+  GET_POSITIONS = 4;
+  GET_ORDERS = 5;
+  GET_ORDER_HISTORY = 6;
+  GET_ACCOUNT_INFO = 7;
+  GET_SYMBOL_INFO = 8;
+  GET_TICK_DATA = 9;
+}
+
+// OrderType matches MT5 ORDER_TYPE_*
+enum OrderType {
+  ORDER_TYPE_UNSPECIFIED = 0;
+  BUY = 1;
+  SELL = 2;
+  BUY_LIMIT = 3;
+  SELL_LIMIT = 4;
+  BUY_STOP = 5;
+  SELL_STOP = 6;
+}
+
+// OrderState matches MT5 ORDER_STATE_*
+enum OrderState {
+  ORDER_STATE_UNSPECIFIED = 0;
+  INITIAL = 1;
+  PLACED = 2;
+  CANCELLED = 3;
+  PARTIAL = 4;
+  FILLED = 5;
+  REJECTED = 6;
+  EXPIRED = 7;
+}
+
+// PlaceOrderRequest for ExecuteOrderOperation
+message PlaceOrderRequest {
+  string symbol = 1;              // e.g., "EURUSD"
+  OrderType type = 2;             // BUY, SELL, BUY_LIMIT, etc.
+  double volume = 3;              // Lot size
+  double price = 4;               // For limit orders
+  double stop_loss = 5;           // SL price (optional)
+  double take_profit = 6;         // TP price (optional)
+  string comment = 7;             // Order comment
+}
+
+// ModifyOrderRequest for ExecuteOrderOperation
+message ModifyOrderRequest {
+  int64 ticket = 1;               // Order ticket (ID)
+  double price = 2;               // New price
+  double stop_loss = 3;           // New SL
+  double take_profit = 4;         // New TP
+}
+
+// CancelOrderRequest for ExecuteOrderOperation
+message CancelOrderRequest {
+  int64 ticket = 1;               // Order ticket to cancel
+}
+
+// Order represents a single order
+message Order {
+  int64 ticket = 1;
+  string symbol = 2;
+  OrderType type = 3;
+  OrderState state = 4;
+  double volume = 5;
+  double volume_current = 6;
+  double price_open = 7;
+  double sl = 8;
+  double tp = 9;
+  google.protobuf.Timestamp time_open = 10;
+  google.protobuf.Timestamp time_done = 11;
+  string comment = 12;
+}
+
+// Position represents an open position
+message Position {
+  int64 ticket = 1;
+  string symbol = 2;
+  OrderType type = 3;               // BUY or SELL
+  double volume = 4;
+  double price_open = 5;
+  double price_current = 6;
+  double profit = 7;                // PnL
+  double commission = 8;
+  string comment = 9;
+}
+
+// AccountInfo represents account state
+message AccountInfo {
+  int64 login = 1;
+  string name = 2;
+  string server = 3;
+  string currency = 4;
+  double balance = 5;               // Cash
+  double equity = 6;                // Balance + floating PnL
+  double margin = 7;                // Used margin
+  double margin_free = 8;           // Available margin
+  double margin_level = 9;          // Margin %
+  double profit = 10;               // Floating profit
+  double commission = 11;
+}
+
+// SymbolInfo represents symbol metadata
+message SymbolInfo {
+  string symbol = 1;
+  string description = 2;
+  double bid = 3;
+  double ask = 4;
+  double last = 5;
+  int32 digits = 6;                 // Decimal places
+  double point = 7;                 // Pip size (0.0001 for EURUSD)
+  double trade_tick_size = 8;
+  double volume_min = 9;
+  double volume_max = 10;
+  double volume_step = 11;
+}
+
+// Tick represents a single price tick
+message Tick {
+  string symbol = 1;
+  double bid = 2;
+  double ask = 3;
+  google.protobuf.Timestamp time = 4;
+}
+
+// OperationResponse base for callback messages
+message OperationResponse {
+  string operation_id = 1;          // Unique operation ID for tracking
+  OperationStatus status = 2;       // Current status
+  google.protobuf.Timestamp timestamp = 3;
+  oneof result {
+    OrderResult order_result = 4;
+    GetPositionsResult get_positions_result = 5;
+    GetOrdersResult get_orders_result = 6;
+    AccountInfo account_info = 7;
+    SymbolInfo symbol_info = 8;
+    TickResult tick_result = 9;
+    ErrorResponse error = 10;
+  }
+}
+
+// OrderResult for PlaceOrder, ModifyOrder, CancelOrder operations
+message OrderResult {
+  bool success = 1;
+  int64 ticket = 2;                 // Assigned ticket (for PlaceOrder)
+  string comment = 3;
+}
+
+// GetPositionsResult
+message GetPositionsResult {
+  repeated Position positions = 1;
+}
+
+// GetOrdersResult
+message GetOrdersResult {
+  repeated Order orders = 1;
+}
+
+// TickResult
+message TickResult {
+  repeated Tick ticks = 1;
+}
+
+// ErrorResponse for operation errors
+message ErrorResponse {
+  string code = 1;                  // gRPC error code (UNAVAILABLE, INVALID_ARGUMENT, etc.)
+  string message = 2;
+  google.protobuf.Struct details = 3;  // Structured error details (optional)
+}
