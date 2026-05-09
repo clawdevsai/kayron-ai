@@ -43,9 +43,22 @@ func (os *OrderService) PlaceOrder(ctx context.Context, order *models.Order) (in
 		return 0, fmt.Errorf("invalid order price: %v", order.Price)
 	}
 
-	// Call MT5 client to place order
-	// This is a placeholder - actual implementation depends on MT5 API
-	ticket := int64(100001)
+	// Call MT5 WebAPI client to place real order
+	placedOrder, err := os.client.PlaceOrder(
+		order.Symbol,
+		string(order.Type),
+		order.Volume,
+		order.Price,
+		*order.StopLoss,
+		*order.TakeProfit,
+		order.Comment,
+	)
+	if err != nil {
+		os.logger.Error("Failed to place order on MT5", err)
+		return 0, err
+	}
+
+	ticket := int64(placedOrder.Ticket)
 
 	// Cache the order
 	os.idempotencyCache.Set(order.IdempotencyKey, ticket)

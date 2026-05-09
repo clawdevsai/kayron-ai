@@ -36,7 +36,8 @@
       "Bash(git commit -m 'T054-T057: Implement market-hours feature \\(Phase 4\\) *)",
       "Bash(git commit -m 'T058-T069: Implement tick-data feature \\(Phase 4 - Final\\) *)",
       "Bash(git commit *)",
-      "mcp__plugin_context-mode_context-mode__ctx_index"
+      "mcp__plugin_context-mode_context-mode__ctx_index",
+      "Bash(chmod +x \"C:\\\\Users\\\\Administrator\\\\Workspace\\\\lukeware\\\\kayron-ai\\\\start-with-mt5.sh\")"
     ]
   }
 }

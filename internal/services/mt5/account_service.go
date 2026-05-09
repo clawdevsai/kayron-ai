@@ -5,7 +5,6 @@ import (
 
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/models"
-	"github.com/shopspring/decimal"
 )
 
 // AccountService handles MT5 account queries
@@ -26,14 +25,20 @@ func NewAccountService(client *Client) *AccountService {
 func (as *AccountService) GetAccount(ctx context.Context) (*models.TradingAccount, error) {
 	as.logger.Info("Querying account information")
 
-	// Call MT5 client to get account info
-	// This is a placeholder - actual implementation depends on MT5 API
-	balance, _ := decimal.NewFromString("10000.00")
-	equity, _ := decimal.NewFromString("10500.00")
-	margin, _ := decimal.NewFromString("2000.00")
-	freeMargin, _ := decimal.NewFromString("8500.00")
+	// Call MT5 WebAPI client to get real account info
+	accountInfo, err := as.client.GetAccount()
+	if err != nil {
+		as.logger.Error("Failed to retrieve account info from MT5", err)
+		return nil, err
+	}
 
-	account := models.NewTradingAccount(balance, equity, margin, freeMargin, "USD")
+	account := models.NewTradingAccount(
+		accountInfo.Balance,
+		accountInfo.Equity,
+		accountInfo.Margin,
+		accountInfo.FreeMargin,
+		accountInfo.Currency,
+	)
 	as.logger.Info("Account information retrieved successfully")
 
 	return account, nil

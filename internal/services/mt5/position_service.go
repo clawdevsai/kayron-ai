@@ -6,7 +6,6 @@ import (
 
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/models"
-	"github.com/shopspring/decimal"
 )
 
 // PositionService handles MT5 position queries and management
@@ -27,17 +26,39 @@ func NewPositionService(client *Client) *PositionService {
 func (ps *PositionService) GetPosition(ctx context.Context, ticket int64) (*models.Position, error) {
 	ps.logger.Info(fmt.Sprintf("Querying position ticket=%d", ticket))
 
-	// Call MT5 client to get position
-	// This is a placeholder - actual implementation depends on MT5 API
-	volume, _ := decimal.NewFromString("1.0")
-	entryPrice, _ := decimal.NewFromString("1.0950")
-	currentPrice, _ := decimal.NewFromString("1.0960")
+	// Call MT5 WebAPI client to get real position (through list orders)
+	orders, err := ps.client.ListOrders("OPEN")
+	if err != nil {
+		ps.logger.Error(fmt.Sprintf("Failed to list orders for position ticket=%d", ticket), err)
+		return nil, err
+	}
 
-	position := models.NewPosition(ticket, "EURUSD", models.PositionTypeLong, volume, entryPrice)
-	position.UpdateProfit(currentPrice)
+	// Find the matching ticket
+	var orderData *Order
+	for _, order := range orders {
+		if int64(order.Ticket) == ticket {
+			orderData = order
+			break
+		}
+	}
 
-	ps.logger.Info(fmt.Sprintf("Position retrieved: ticket=%d, profit=%.2f", ticket, position.Profit))
+	if orderData == nil {
+		return nil, fmt.Errorf("position not found: ticket=%d", ticket)
+	}
+
+	position := models.NewPosition(ticket, orderData.Symbol, mapOrderSideToPosition(orderData.Side), orderData.Volume, orderData.OpenPrice)
+	position.UpdateProfit(orderData.OpenPrice) // UpdateProfit with current price (from quote)
+
+	ps.logger.Info(fmt.Sprintf("Position retrieved: ticket=%d, symbol=%s", ticket, orderData.Symbol))
 	return position, nil
+}
+
+// mapOrderSideToPosition converts order side to position type
+func mapOrderSideToPosition(side string) models.PositionType {
+	if side == "BUY" {
+		return models.PositionTypeLong
+	}
+	return models.PositionTypeShort
 }
 
 // ClosePosition closes an open position

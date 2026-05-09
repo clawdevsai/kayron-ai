@@ -37,3 +37,84 @@
 2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
 2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
 2026/05/08 23:51:31 {"timestamp":"2026-05-09T02:51:31Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-real-ftmo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/08 23:53:37 {"timestamp":"2026-05-09T02:53:37Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/08 23:53:37 Failed to create daemon: listen tcp 127.0.0.1:50051: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-real-ftmo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/08 23:53:44 {"timestamp":"2026-05-09T02:53:44Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/08 23:53:44 {"timestamp":"2026-05-09T02:53:44Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/08 23:53:44 {"timestamp":"2026-05-09T02:53:44Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/08 23:53:44 {"timestamp":"2026-05-09T02:53:44Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+2026/05/08 23:56:38 {"timestamp":"2026-05-09T02:56:38Z","level":"INFO","component":"AccountInfoTool","message":"Executing account-info tool"}
+2026/05/08 23:56:38 {"timestamp":"2026-05-09T02:56:38Z","level":"INFO","component":"AccountServiceHandler","message":"GetAccountInfo request received"}
+2026/05/08 23:56:38 {"timestamp":"2026-05-09T02:56:38Z","level":"INFO","component":"AccountService","message":"Querying account information"}
+2026/05/08 23:56:38 {"timestamp":"2026-05-09T02:56:38Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
+2026/05/08 23:56:38 {"timestamp":"2026-05-09T02:56:38Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
+2026/05/08 23:56:38 {"timestamp":"2026-05-09T02:56:38Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-real-ftmo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/08 23:57:04 {"timestamp":"2026-05-09T02:57:04Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/08 23:57:04 {"timestamp":"2026-05-09T02:57:04Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/08 23:57:04 {"timestamp":"2026-05-09T02:57:04Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/08 23:57:04 {"timestamp":"2026-05-09T02:57:04Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-real-ftmo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/08 23:58:01 {"timestamp":"2026-05-09T02:58:01Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/08 23:58:01 {"timestamp":"2026-05-09T02:58:01Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/08 23:58:01 {"timestamp":"2026-05-09T02:58:01Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/08 23:58:01 {"timestamp":"2026-05-09T02:58:01Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-real-ftmo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/09 00:01:02 {"timestamp":"2026-05-09T03:01:02Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/09 00:01:02 {"timestamp":"2026-05-09T03:01:02Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/09 00:01:02 {"timestamp":"2026-05-09T03:01:02Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/09 00:01:02 {"timestamp":"2026-05-09T03:01:02Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-ftmo-demo.yaml
+[0;31m[ERROR][0m Config file not found: config-ftmo-demo.yaml
+[0;32m[MCP][0m MT5 MCP Server Startup
+[0;32m[MCP][0m Config: config-real-ftmo.yaml
+[0;32m[MCP][0m Binary: /c/Users/Administrator/Workspace/lukeware/kayron-ai/bin/mcp-mt5-server
+[0;32m[MCP][0m Starting server...
+[0;32m[MCP][0m Logs: /c/Users/Administrator/Workspace/lukeware/kayron-ai/mcp-server.log
+2026/05/09 00:04:36 {"timestamp":"2026-05-09T03:04:36Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/09 00:04:36 {"timestamp":"2026-05-09T03:04:36Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/09 00:04:36 {"timestamp":"2026-05-09T03:04:36Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/09 00:04:36 {"timestamp":"2026-05-09T03:04:36Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+2026/05/09 00:05:32 {"timestamp":"2026-05-09T03:05:32Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/09 00:05:32 {"timestamp":"2026-05-09T03:05:32Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/09 00:05:32 {"timestamp":"2026-05-09T03:05:32Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/09 00:05:32 {"timestamp":"2026-05-09T03:05:32Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}
+2026/05/09 00:06:12 {"timestamp":"2026-05-09T03:06:12Z","level":"INFO","component":"AccountInfoTool","message":"Executing account-info tool"}
+2026/05/09 00:06:12 {"timestamp":"2026-05-09T03:06:12Z","level":"INFO","component":"AccountServiceHandler","message":"GetAccountInfo request received"}
+2026/05/09 00:06:12 {"timestamp":"2026-05-09T03:06:12Z","level":"INFO","component":"AccountService","message":"Querying account information"}
+2026/05/09 00:06:12 {"timestamp":"2026-05-09T03:06:12Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
+2026/05/09 00:06:12 {"timestamp":"2026-05-09T03:06:12Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
+2026/05/09 00:06:12 {"timestamp":"2026-05-09T03:06:12Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
+2026/05/09 00:06:38 {"timestamp":"2026-05-09T03:06:38Z","level":"INFO","component":"AccountInfoTool","message":"Executing account-info tool"}
+2026/05/09 00:06:38 {"timestamp":"2026-05-09T03:06:38Z","level":"INFO","component":"AccountServiceHandler","message":"GetAccountInfo request received"}
+2026/05/09 00:06:38 {"timestamp":"2026-05-09T03:06:38Z","level":"INFO","component":"AccountService","message":"Querying account information"}
+2026/05/09 00:06:38 {"timestamp":"2026-05-09T03:06:38Z","level":"INFO","component":"AccountService","message":"Account information retrieved successfully"}
+2026/05/09 00:06:38 {"timestamp":"2026-05-09T03:06:38Z","level":"INFO","component":"AccountServiceHandler","message":"AccountInfo response sent successfully"}
+2026/05/09 00:06:38 {"timestamp":"2026-05-09T03:06:38Z","level":"INFO","component":"AccountInfoTool","message":"Account info retrieved successfully"}
+2026/05/09 00:08:31 {"timestamp":"2026-05-09T03:08:31Z","level":"INFO","component":"Main","message":"Warning: queue initialization failed (requires CGO): Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub. Proceeding without persistence."}
+2026/05/09 00:08:31 {"timestamp":"2026-05-09T03:08:31Z","level":"INFO","component":"Main","message":"Starting MT5 MCP Server"}
+2026/05/09 00:08:31 {"timestamp":"2026-05-09T03:08:31Z","level":"INFO","component":"MCPServer","message":"HTTP server listening on :8080"}
+2026/05/09 00:08:31 {"timestamp":"2026-05-09T03:08:31Z","level":"INFO","component":"Daemon","message":"gRPC daemon starting on localhost:50051"}

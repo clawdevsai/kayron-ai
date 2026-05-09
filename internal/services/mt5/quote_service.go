@@ -7,7 +7,6 @@ import (
 
 	"github.com/lukeware/kayron-ai/internal/logger"
 	"github.com/lukeware/kayron-ai/internal/models"
-	"github.com/shopspring/decimal"
 )
 
 // QuoteService handles MT5 quote queries
@@ -28,13 +27,15 @@ func NewQuoteService(client *Client) *QuoteService {
 func (qs *QuoteService) GetQuote(ctx context.Context, symbol string) (*models.Quote, error) {
 	qs.logger.Info(fmt.Sprintf("Querying quote for %s", symbol))
 
-	// Call MT5 client to get quote
-	// This is a placeholder - actual implementation depends on MT5 API
-	bid, _ := decimal.NewFromString("1.0950")
-	ask, _ := decimal.NewFromString("1.0952")
+	// Call MT5 WebAPI client to get real quote
+	quoteData, err := qs.client.GetQuote(symbol)
+	if err != nil {
+		qs.logger.Error(fmt.Sprintf("Failed to retrieve quote for %s", symbol), err)
+		return nil, err
+	}
 
-	quote := models.NewQuote(symbol, bid, ask, time.Now())
-	qs.logger.Info(fmt.Sprintf("Quote retrieved for %s: bid=%v, ask=%v", symbol, bid, ask))
+	quote := models.NewQuote(symbol, quoteData.Bid, quoteData.Ask, time.Now())
+	qs.logger.Info(fmt.Sprintf("Quote retrieved for %s: bid=%v, ask=%v", symbol, quoteData.Bid, quoteData.Ask))
 
 	return quote, nil
 }
